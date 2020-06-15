@@ -34,9 +34,9 @@ enum INTERNAL_TEXTURE {
     SQUARE_ICON,
     SELECT_ICON,
     START_ICON,
-    /* currently unused.
     UP_ICON,
     DOWN_ICON,
+    /* currently unused.
     L1_ICON,
     L2_ICON,
     L3_ICON,

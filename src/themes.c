@@ -10,12 +10,16 @@
 #include "include/pad.h"
 #include "include/sound.h"
 
-#define MENU_POS_V     50
-#define HINT_HEIGHT    32
-#define DECORATOR_SIZE 20
+#define MENU_POS_V      50
+#define HINT_HEIGHT     32
+#define DECORATOR_SIZE  20
+#define COVERFLOW_COUNT 3
 
 extern const char conf_theme_OPL_cfg;
 extern u16 size_conf_theme_OPL_cfg;
+
+extern const char conf_theme_OPL_CF_cfg;
+extern u16 size_conf_theme_OPL_CF_cfg;
 
 theme_t *gTheme;
 
@@ -47,6 +51,7 @@ enum ELEM_ATTRIBUTE_TYPE {
     ELEM_TYPE_INFO_HINT_TEXT,
     ELEM_TYPE_LOADING_ICON,
     ELEM_TYPE_BDM_INDEX,
+    ELEM_TYPE_COVERFLOW,
 
     ELEM_TYPE_COUNT
 };
@@ -76,6 +81,7 @@ static const char *elementsType[ELEM_TYPE_COUNT] = {
     "InfoHintText",
     "LoadingIcon",
     "BdmIndex",
+    "Coverflow",
 };
 
 // Common functions for Text ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -270,7 +276,7 @@ static void findDuplicate(theme_element_t *first, const char *cachePattern, cons
 {
     theme_element_t *elem = first;
     while (elem) {
-        if ((elem->type == ELEM_TYPE_STATIC_IMAGE) || (elem->type == ELEM_TYPE_ATTRIBUTE_IMAGE) || (elem->type == ELEM_TYPE_GAME_IMAGE) || (elem->type == ELEM_TYPE_BACKGROUND)) {
+        if ((elem->type == ELEM_TYPE_STATIC_IMAGE) || (elem->type == ELEM_TYPE_ATTRIBUTE_IMAGE) || (elem->type == ELEM_TYPE_GAME_IMAGE) || (elem->type == ELEM_TYPE_COVERFLOW) || (elem->type == ELEM_TYPE_BACKGROUND)) {
             mutable_image_t *source = (mutable_image_t *)elem->extended;
 
             if (cachePattern && source->cache && !strcmp(cachePattern, source->cache->suffix)) {
@@ -437,7 +443,7 @@ static mutable_image_t *initMutableImage(const char *themePath, config_set_t *th
         snprintf(elemProp, sizeof(elemProp), "%s_attribute", name);
         configGetStr(themeConfig, elemProp, &cachePattern);
         LOG("THEMES MutableImage %s: type: %s using cache pattern: %s\n", name, elementsType[type], cachePattern);
-    } else if ((type == ELEM_TYPE_GAME_IMAGE) || (type == ELEM_TYPE_BACKGROUND)) {
+    } else if ((type == ELEM_TYPE_GAME_IMAGE) || (type == ELEM_TYPE_COVERFLOW) || (type == ELEM_TYPE_BACKGROUND)) {
         snprintf(elemProp, sizeof(elemProp), "%s_pattern", name);
         configGetStr(themeConfig, elemProp, &cachePattern);
         snprintf(elemProp, sizeof(elemProp), "%s_count", name);
@@ -762,10 +768,20 @@ static int findMenuPrev(struct menu_list *menu)
 static void drawMenuText(struct menu_list *menu, struct submenu_list *item, config_set_t *config, struct theme_element *elem)
 {
     GSTEXTURE *leftIconTex = NULL, *rightIconTex = NULL;
+    int iconOne, iconTwo;
+
+    if (gTheme->coverflow != NULL) {
+        iconOne = UP_ICON;
+        iconTwo = DOWN_ICON;
+    } else {
+        iconOne = LEFT_ICON;
+        iconTwo = RIGHT_ICON;
+    }
+
     if (findMenuPrev(menu) != 0)
-        leftIconTex = thmGetTexture(LEFT_ICON);
+        leftIconTex = thmGetTexture(iconOne);
     if (findMenuNext(menu) != 0)
-        rightIconTex = thmGetTexture(RIGHT_ICON);
+        rightIconTex = thmGetTexture(iconTwo);
 
     if (elem->aligned) {
         int offset = elem->width >> 1;
@@ -925,6 +941,85 @@ static void drawInfoHintText(struct menu_list *menu, struct submenu_list *item, 
     x = guiDrawIconAndText(gSelectButton == KEY_CIRCLE ? infoIcons[1] : infoIcons[0], infoHints[1], elem->font, x, elem->posY, elem->color);
 }
 
+int isAnimating = 0;        // Animation flag
+int animationDirection = 0; // 1 for right (next), -1 for left (prev)
+
+static void drawCoverFlow(struct menu_list *menu, struct submenu_list *item, config_set_t *config, struct theme_element *elem)
+{
+    if (item == NULL)
+        return;
+
+    int coverSpacing = 0;
+    int coverHeight = elem->height;
+    int coverWidth = gWideScreen ? rmWideScale(elem->width) : elem->width;
+    int totalCoversWidth = COVERFLOW_COUNT * coverWidth;
+    int totalRemainingSpace = screenWidth - totalCoversWidth;
+
+    if (totalRemainingSpace >= 0) {
+        coverSpacing = totalRemainingSpace / 4; // Divide by 4 to distribute the space equally (2 spaces between covers + 2 on the sides)
+        // If coverSpacing ends up negative set it to a minimum value
+        if (coverSpacing < 0)
+            coverSpacing = 0;
+    }
+
+    int coverDistance = 0;
+    int posX = coverSpacing + (coverWidth >> 1);
+    u64 Col = GS_SETREG_RGBA(0x80, 0x80, 0x80, 0x20);
+
+    float animationProgress = 0.0f; // Progress of animation (0.0 - 1.0)
+    float animationSpeed = 0.05f;   // Speed of animation
+
+    submenu_list_t *game[COVERFLOW_COUNT] = {NULL};
+    mutable_image_t *gameCover[COVERFLOW_COUNT];
+    GSTEXTURE *texture[COVERFLOW_COUNT];
+
+    game[0] = item->prev;
+    game[1] = item;
+    game[2] = item->next;
+
+    if (isAnimating) {
+        posX += animationDirection * (animationProgress * coverDistance);
+        animationProgress += animationSpeed;
+        if (animationProgress >= 1.0f) {
+            isAnimating = 0;
+            animationProgress = 0.0f;
+        }
+    }
+
+    for (int i = 0; i < COVERFLOW_COUNT; i++) {
+        posX += coverDistance;
+        coverDistance = coverWidth + coverSpacing;
+
+        if (game[i] == NULL)
+            continue;
+
+        gameCover[i] = (mutable_image_t *)elem->extended;
+        texture[i] = getGameImageTexture(gameCover[i]->cache, menu->item->userdata, &game[i]->item);
+        if (!texture[i] || !texture[i]->Mem)
+            texture[i] = (gameCover[i]->defaultTexture) ? &gameCover[i]->defaultTexture->source : thmGetTexture(COVER_DEFAULT);
+
+        if (gameCover[i]->overlayTexture) {
+            rmDrawOverlayPixmap(&gameCover[i]->overlayTexture->source, posX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, (i == 1) ? gDefaultCol : Col,
+                                texture[i], gameCover[i]->overlayTexture->upperLeft_x, gameCover[i]->overlayTexture->upperLeft_y, gameCover[i]->overlayTexture->upperRight_x,
+                                gameCover[i]->overlayTexture->upperRight_y, gameCover[i]->overlayTexture->lowerLeft_x, gameCover[i]->overlayTexture->lowerLeft_y,
+                                gameCover[i]->overlayTexture->lowerRight_x, gameCover[i]->overlayTexture->lowerRight_y);
+        } else
+            rmDrawPixmap(texture[i], posX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, (i == 1) ? gDefaultCol : Col);
+    }
+}
+
+static void initCoverflow(const char *themePath, config_set_t *themeConfig, theme_t *theme, theme_element_t *elem, const char *name, int count, const char *texture, const char *overlay)
+{
+    mutable_image_t *mutableImage = initMutableImage(themePath, themeConfig, theme, name, ELEM_TYPE_GAME_IMAGE, "COV", count, texture, overlay);
+    elem->extended = mutableImage;
+    elem->endElem = &endMutableImage;
+
+    if (mutableImage->cache)
+        elem->drawElem = &drawCoverFlow;
+    else
+        LOG("THEMES GameImage %s: NO pattern, elem disabled !!\n", name);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void validateBackgroundElems(const char *themePath, config_set_t *themeConfig, theme_t *theme, theme_elems_t *mainElems, theme_elems_t *infoElems)
@@ -1060,6 +1155,10 @@ static int addGUIElem(const char *themePath, config_set_t *themeConfig, theme_t 
             } else if (!strcmp(elementsType[ELEM_TYPE_BDM_INDEX], type)) {
                 elem = initBasic(themePath, themeConfig, theme, name, ELEM_TYPE_BDM_INDEX, screenWidth >> 1, 355, ALIGN_CENTER, DIM_UNDEF, DIM_UNDEF, SCALING_RATIO, gDefaultCol, theme->fonts[0]);
                 elem->drawElem = &drawBDMIndex;
+            } else if (!strcmp(elementsType[ELEM_TYPE_COVERFLOW], type)) {
+                elem = initBasic(themePath, themeConfig, theme, name, ELEM_TYPE_COVERFLOW, 0, 0, ALIGN_NONE, DIM_UNDEF, DIM_UNDEF, SCALING_NONE, gDefaultCol, theme->fonts[0]);
+                initCoverflow(themePath, themeConfig, theme, elem, name, 10, NULL, NULL);
+                theme->coverflow = elem;
             }
 
             if (elem) {
@@ -1213,7 +1312,7 @@ static void thmLoadFonts(config_set_t *themeConfig, const char *themePath, theme
     }
 }
 
-static void thmLoad(const char *themePath)
+static void thmLoad(const char *themePath, int themeID)
 {
     LOG("THEMES Load theme path=%s\n", themePath);
     char path[256];
@@ -1238,12 +1337,16 @@ static void thmLoad(const char *themePath)
     newT->appsItemsList = NULL;
     newT->loadingIcon = NULL;
     newT->loadingIconCount = LOAD7_ICON - LOAD0_ICON + 1;
+    newT->coverflow = NULL;
 
     config_set_t *themeConfig = NULL;
-    if (!themePath) {
+    if (!themePath && themeID == 0) {
         // No theme specified. Prepare and load the default theme.
         themeConfig = configAlloc(0, NULL, NULL);
         configReadBuffer(themeConfig, &conf_theme_OPL_cfg, size_conf_theme_OPL_cfg);
+    } else if (!themePath && themeID == 1) {
+        themeConfig = configAlloc(0, NULL, NULL);
+        configReadBuffer(themeConfig, &conf_theme_OPL_CF_cfg, size_conf_theme_OPL_CF_cfg);
     } else {
         snprintf(path, sizeof(path), "%sconf_theme.cfg", themePath);
         themeConfig = configAlloc(0, NULL, path);
@@ -1340,6 +1443,9 @@ static void thmLoad(const char *themePath)
     }
     newT->loadingIconCount = i;
 
+    // Default cover for missing covers in coverflow.
+    texLoadInternal(&newT->textures[COVER_DEFAULT], COVER_DEFAULT);
+
     // Customizable icons
     for (i = BDM_ICON; i <= START_ICON; i++)
         thmLoadResource(&newT->textures[i], i, themePath, GS_PSM_CT32, newT->useDefault);
@@ -1362,17 +1468,18 @@ static void thmRebuildGuiNames(void)
         free(guiThemesNames);
 
     // build the themes name list
-    guiThemesNames = (const char **)malloc((nThemes + 2) * sizeof(char **));
+    guiThemesNames = (const char **)malloc((nThemes + 3) * sizeof(char **));
 
     // add default internal
     guiThemesNames[0] = "<OPL>";
+    guiThemesNames[1] = "<OPL-CF>";
 
     int i = 0;
     for (; i < nThemes; i++) {
-        guiThemesNames[i + 1] = themes[i].name;
+        guiThemesNames[i + 2] = themes[i].name;
     }
 
-    guiThemesNames[nThemes + 1] = NULL;
+    guiThemesNames[nThemes + 2] = NULL;
 }
 
 int thmAddElements(char *path, const char *separator, int forceRefresh)
@@ -1403,14 +1510,14 @@ void thmInit(void)
     thmReloadScreenExtents();
 
     // initialize default internal
-    thmLoad(NULL);
+    thmLoad(NULL, 0); // <OPL>
 
     thmAddElements(gBaseMCDir, "/", 0);
 }
 
 void thmReinit(const char *path)
 {
-    thmLoad(NULL);
+    thmLoad(NULL, 0); // <OPL>
     guiThemeID = 0;
 
     int i = 0;
@@ -1445,7 +1552,12 @@ int thmSetGuiValue(int themeID, int reload)
 {
     if (themeID != -1) {
         if (guiThemeID != themeID || reload) {
-            thmLoad(themeID != 0 ? themes[themeID - 1].filePath : NULL);
+            if (themeID == 0)
+                thmLoad(NULL, 0); // <OPL>
+            else if (themeID == 1)
+                thmLoad(NULL, 1); // <OPL_CF>
+            else if (themeID > 1)
+                thmLoad(themes[themeID - 2].filePath, -1); // Load external themes
 
             guiThemeID = themeID;
             return 1;

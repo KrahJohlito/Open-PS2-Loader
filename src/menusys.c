@@ -699,6 +699,9 @@ static void menuNextV()
         selected_item->item->current = cur->next;
         sfxPlay(SFX_CURSOR);
 
+        isAnimating = 1;
+        animationDirection = 1;
+
         // if the current item is beyond the page start, move the page start one page down
         cur = selected_item->item->pagestart;
         int itms = ((items_list_t *)gTheme->itemsList->extended)->displayedItems + 1;
@@ -721,6 +724,9 @@ static void menuPrevV()
     if (cur && cur->prev) {
         selected_item->item->current = cur->prev;
         sfxPlay(SFX_CURSOR);
+
+        isAnimating = 1;
+        animationDirection = -1;
 
         // if the current item is on the page start, move the page start one page up
         if (selected_item->item->pagestart == cur) {
@@ -767,6 +773,38 @@ static void menuPrevPage()
     } else { // wrap to end
         menuLastPage();
     }
+}
+
+static void menuNavigateLeft(void)
+{
+    if (gTheme->coverflow == NULL)
+        menuPrevH();
+    else
+        menuPrevV();
+}
+
+static void menuNavigateRight(void)
+{
+    if (gTheme->coverflow == NULL)
+        menuNextH();
+    else
+        menuNextV();
+}
+
+static void menuNavigateUp(void)
+{
+    if (gTheme->coverflow == NULL)
+        menuPrevV();
+    else
+        menuPrevH();
+}
+
+static void menuNavigateDown(void)
+{
+    if (gTheme->coverflow == NULL)
+        menuNextV();
+    else
+        menuNextH();
 }
 
 void menuSetSelectedItem(menu_item_t *item)
@@ -989,13 +1027,13 @@ void menuRenderMain(void)
 void menuHandleInputMain()
 {
     if (getKey(KEY_LEFT)) {
-        menuPrevH();
+        menuNavigateLeft();
     } else if (getKey(KEY_RIGHT)) {
-        menuNextH();
+        menuNavigateRight();
     } else if (getKey(KEY_UP)) {
-        menuPrevV();
+        menuNavigateUp();
     } else if (getKey(KEY_DOWN)) {
-        menuNextV();
+        menuNavigateDown();
     } else if (getKeyOn(KEY_CROSS)) {
         selected_item->item->execCross(selected_item->item);
     } else if (getKeyOn(KEY_TRIANGLE)) {
@@ -1047,14 +1085,25 @@ void menuRenderInfo(void)
 
 void menuHandleInputInfo()
 {
+    int navPrev;
+    int navNext;
+
+    if (gTheme->coverflow == NULL) {
+        navPrev = KEY_UP;
+        navNext = KEY_DOWN;
+    } else {
+        navPrev = KEY_LEFT;
+        navNext = KEY_RIGHT;
+    }
+
     if (getKeyOn(KEY_CROSS)) {
         if (gSelectButton == KEY_CIRCLE)
             guiSwitchScreen(GUI_SCREEN_MAIN);
         else
             selected_item->item->execCross(selected_item->item);
-    } else if (getKey(KEY_UP)) {
+    } else if (getKey(navPrev)) {
         menuPrevV();
-    } else if (getKey(KEY_DOWN)) {
+    } else if (getKey(navNext)) {
         menuNextV();
     } else if (getKeyOn(KEY_CIRCLE)) {
         if (gSelectButton == KEY_CROSS)

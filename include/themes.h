@@ -124,6 +124,8 @@ typedef struct theme
 
     GSTEXTURE textures[TEXTURES_COUNT];
     int fonts[THM_MAX_FONTS]; //!< Storage of font handles for removal once not needed
+
+    theme_element_t *coverflow;
 } theme_t;
 
 extern theme_t *gTheme;
@@ -142,5 +144,8 @@ int thmGetGuiValue(void);
 int thmFindGuiID(const char *theme);
 const char **thmGetGuiList(void);
 char *thmGetFilePath(int themeID);
+
+extern int isAnimating;
+extern int animationDirection;
 
 #endif
