@@ -377,6 +377,40 @@ void rmDrawOverlayPixmap(GSTEXTURE *overlay, int x, int y, short aligned, int w,
     rmDrawQuad(&quad);
 }
 
+void rmDrawCover(GSTEXTURE *txt, float fx, float fy, float fCoverWidth, float fCoverHeight)
+{
+    u64 TexCol1 = GS_SETREG_RGBAQ(0x80, 0x80, 0x80, 0x80, 0x00);
+    u64 TexCol2 = GS_SETREG_RGBAQ(0x80, 0x80, 0x80, 0x20, 0x00);
+
+    gsKit_TexManager_bind(gsGlobal, txt);
+
+    // Draw normal
+    gsKit_prim_sprite_texture(gsGlobal, txt,
+                              fx,                // X1
+                              fy - fCoverHeight, // Y2
+                              0.0f,              // U1
+                              0.0f,              // V1
+                              fx + fCoverWidth,  // X2
+                              fy,                // Y2
+                              txt->Width,        // U2
+                              txt->Height,       // V2
+                              2,
+                              TexCol1);
+
+    // Draw upside down
+    gsKit_prim_sprite_texture(gsGlobal, txt,
+                              fx,                // X1
+                              fy + fCoverHeight, // Y2
+                              0.0f,              // U1
+                              0.0f,              // V1
+                              fx + fCoverWidth,  // X2
+                              fy,                // Y2
+                              txt->Width,        // U2
+                              txt->Height,       // V2
+                              2,
+                              TexCol2);
+}
+
 void rmDrawRect(int x, int y, int w, int h, u64 color)
 {
     float fx = X_SCALE(x) + fRenderXOff;
