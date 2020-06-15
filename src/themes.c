@@ -10,9 +10,10 @@
 #include "include/pad.h"
 #include "include/sound.h"
 
-#define MENU_POS_V     50
-#define HINT_HEIGHT    32
-#define DECORATOR_SIZE 20
+#define MENU_POS_V      50
+#define HINT_HEIGHT     32
+#define DECORATOR_SIZE  20
+#define COVERFLOW_COUNT 5
 
 extern const char conf_theme_OPL_cfg;
 extern u16 size_conf_theme_OPL_cfg;
@@ -46,6 +47,7 @@ enum ELEM_ATTRIBUTE_TYPE {
     ELEM_TYPE_HINT_TEXT,
     ELEM_TYPE_INFO_HINT_TEXT,
     ELEM_TYPE_LOADING_ICON,
+    ELEM_TYPE_COVERFLOW,
 
     ELEM_TYPE_COUNT
 };
@@ -74,6 +76,7 @@ static const char *elementsType[ELEM_TYPE_COUNT] = {
     "HintText",
     "InfoHintText",
     "LoadingIcon",
+    "Coverflow",
 };
 
 // Common functions for Text ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -268,7 +271,7 @@ static void findDuplicate(theme_element_t *first, const char *cachePattern, cons
 {
     theme_element_t *elem = first;
     while (elem) {
-        if ((elem->type == ELEM_TYPE_STATIC_IMAGE) || (elem->type == ELEM_TYPE_ATTRIBUTE_IMAGE) || (elem->type == ELEM_TYPE_GAME_IMAGE) || (elem->type == ELEM_TYPE_BACKGROUND)) {
+        if ((elem->type == ELEM_TYPE_STATIC_IMAGE) || (elem->type == ELEM_TYPE_ATTRIBUTE_IMAGE) || (elem->type == ELEM_TYPE_GAME_IMAGE) || (elem->type == ELEM_TYPE_COVERFLOW) || (elem->type == ELEM_TYPE_BACKGROUND)) {
             mutable_image_t *source = (mutable_image_t *)elem->extended;
 
             if (cachePattern && source->cache && !strcmp(cachePattern, source->cache->suffix)) {
@@ -435,7 +438,7 @@ static mutable_image_t *initMutableImage(const char *themePath, config_set_t *th
         snprintf(elemProp, sizeof(elemProp), "%s_attribute", name);
         configGetStr(themeConfig, elemProp, &cachePattern);
         LOG("THEMES MutableImage %s: type: %s using cache pattern: %s\n", name, elementsType[type], cachePattern);
-    } else if ((type == ELEM_TYPE_GAME_IMAGE) || (type == ELEM_TYPE_BACKGROUND)) {
+    } else if ((type == ELEM_TYPE_GAME_IMAGE) || (type == ELEM_TYPE_COVERFLOW) || (type == ELEM_TYPE_BACKGROUND)) {
         snprintf(elemProp, sizeof(elemProp), "%s_pattern", name);
         configGetStr(themeConfig, elemProp, &cachePattern);
         snprintf(elemProp, sizeof(elemProp), "%s_count", name);
@@ -740,10 +743,21 @@ static void drawMenuIcon(struct menu_list *menu, struct submenu_list *item, conf
 static void drawMenuText(struct menu_list *menu, struct submenu_list *item, config_set_t *config, struct theme_element *elem)
 {
     GSTEXTURE *leftIconTex = NULL, *rightIconTex = NULL;
+    int iconOne, iconTwo;
+
+    if (gTheme->coverflow != NULL) {
+        iconOne = UP_ICON;
+        iconTwo = DOWN_ICON;
+    } else {
+        iconOne = LEFT_ICON;
+        iconTwo = RIGHT_ICON;
+    }
+
     if (menu->prev != NULL)
-        leftIconTex = thmGetTexture(LEFT_ICON);
+        leftIconTex = thmGetTexture(iconOne);
     if (menu->next != NULL)
-        rightIconTex = thmGetTexture(RIGHT_ICON);
+        rightIconTex = thmGetTexture(iconTwo);
+
 
     if (elem->aligned) {
         int offset = elem->width >> 1;
@@ -865,6 +879,82 @@ static void drawInfoHintText(struct menu_list *menu, struct submenu_list *item, 
     x = guiDrawIconAndText(gSelectButton == KEY_CIRCLE ? infoIcons[1] : infoIcons[0], infoHints[1], elem->font, x, elem->posY, elem->color);
 }
 
+void drawCoverFlow(struct menu_list *menu, struct submenu_list *item, config_set_t *config, struct theme_element *elem)
+{
+    int coverWidth, coverHeight;
+    int coverDistance = 0, coverScaling = 30;
+    int overlayOffset, posYOffset, posX = 10;
+
+    submenu_list_t *game[COVERFLOW_COUNT];
+    mutable_image_t *gameCover[COVERFLOW_COUNT];
+    GSTEXTURE *texture[COVERFLOW_COUNT];
+
+    int i;
+    for (i = 0; i < COVERFLOW_COUNT; i++)
+        game[i] = NULL;
+
+    if (item->prev != NULL)
+        game[0] = item->prev->prev;
+
+    if (item->next != NULL)
+        game[4] = item->next->next;
+
+    game[1] = item->prev;
+    game[2] = item;
+    game[3] = item->next;
+
+    for (i = 0; i < COVERFLOW_COUNT; i++) {
+        posX += (coverDistance);
+
+        coverWidth = 110;
+        coverHeight = 170;
+        posYOffset = 0;
+        overlayOffset = 0;
+
+        // Draw selected cover 30px bigger.
+        if (i == 2) {
+            coverWidth += coverScaling;
+            coverHeight += coverScaling;
+            posYOffset = (coverScaling >> 1);
+            overlayOffset = coverScaling;
+        }
+
+        coverDistance = (coverWidth + 10);
+
+        if (game[i] == NULL)
+            continue;
+
+        gameCover[i] = (mutable_image_t *)elem->extended;
+        texture[i] = getGameImageTexture(gameCover[i]->cache, menu->item->userdata, &game[i]->item);
+        if (!texture[i] || !texture[i]->Mem) {
+            if (gameCover[i]->defaultTexture)
+                texture[i] = &gameCover[i]->defaultTexture->source;
+            else
+                texture[i] = thmGetTexture(COVER_DEFAULT);
+        }
+
+        if (gameCover[i]->overlayTexture) {
+            rmDrawOverlayPixmap(&gameCover[i]->overlayTexture->source, posX, elem->posY - posYOffset, ALIGN_NONE, coverWidth, coverHeight, SCALING_NONE, gDefaultCol,
+                                texture[i], gameCover[i]->overlayTexture->upperLeft_x, gameCover[i]->overlayTexture->upperLeft_y, gameCover[i]->overlayTexture->upperRight_x + overlayOffset,
+                                gameCover[i]->overlayTexture->upperRight_y, gameCover[i]->overlayTexture->lowerLeft_x, gameCover[i]->overlayTexture->lowerLeft_y + overlayOffset,
+                                gameCover[i]->overlayTexture->lowerRight_x + overlayOffset, gameCover[i]->overlayTexture->lowerRight_y + overlayOffset);
+        } else
+            rmDrawPixmap(texture[i], posX, elem->posY - posYOffset, ALIGN_NONE, coverWidth, coverHeight, SCALING_NONE, gDefaultCol);
+    }
+}
+
+static void initCoverflow(const char *themePath, config_set_t *themeConfig, theme_t *theme, theme_element_t *elem, const char *name, int count, const char *texture, const char *overlay)
+{
+    mutable_image_t *mutableImage = initMutableImage(themePath, themeConfig, theme, name, ELEM_TYPE_GAME_IMAGE, "COV", count, texture, overlay);
+    elem->extended = mutableImage;
+    elem->endElem = &endMutableImage;
+
+    if (mutableImage->cache)
+        elem->drawElem = &drawCoverFlow;
+    else
+        LOG("THEMES GameImage %s: NO pattern, elem disabled !!\n", name);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void validateGUIElems(const char *themePath, config_set_t *themeConfig, theme_t *theme)
@@ -981,6 +1071,10 @@ static int addGUIElem(const char *themePath, config_set_t *themeConfig, theme_t 
             } else if (!strcmp(elementsType[ELEM_TYPE_LOADING_ICON], type)) {
                 if (!theme->loadingIcon)
                     theme->loadingIcon = initBasic(themePath, themeConfig, theme, name, ELEM_TYPE_LOADING_ICON, -40, -60, ALIGN_CENTER, DIM_UNDEF, DIM_UNDEF, SCALING_RATIO, gDefaultCol, theme->fonts[0]);
+            } else if (!strcmp(elementsType[ELEM_TYPE_COVERFLOW], type)) {
+                elem = initBasic(themePath, themeConfig, theme, name, ELEM_TYPE_COVERFLOW, 0, 0, ALIGN_NONE, DIM_UNDEF, DIM_UNDEF, SCALING_NONE, gDefaultCol, theme->fonts[0]);
+                initCoverflow(themePath, themeConfig, theme, elem, name, 10, NULL, NULL);
+                theme->coverflow = elem;
             }
 
             if (elem) {
@@ -1151,6 +1245,7 @@ static void thmLoad(const char *themePath)
     newT->itemsList = NULL;
     newT->loadingIcon = NULL;
     newT->loadingIconCount = LOAD7_ICON - LOAD0_ICON + 1;
+    newT->coverflow = NULL;
 
     config_set_t *themeConfig = NULL;
     if (!themePath) {
@@ -1228,6 +1323,9 @@ static void thmLoad(const char *themePath)
         }
     }
     newT->loadingIconCount = i;
+
+    // Default cover for missing covers in coverflow.
+    texLoadInternal(&newT->textures[COVER_DEFAULT], COVER_DEFAULT);
 
     // Customizable icons
     for (i = BDM_ICON; i <= START_ICON; i++)
