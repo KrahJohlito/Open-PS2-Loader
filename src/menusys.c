@@ -769,6 +769,38 @@ static void menuPrevPage()
     }
 }
 
+static void menuNavigateLeft(void)
+{
+    if (gTheme->coverflow == NULL)
+        menuPrevH();
+    else
+        menuPrevV();
+}
+
+static void menuNavigateRight(void)
+{
+    if (gTheme->coverflow == NULL)
+        menuNextH();
+    else
+        menuNextV();
+}
+
+static void menuNavigateUp(void)
+{
+    if (gTheme->coverflow == NULL)
+        menuPrevV();
+    else
+        menuPrevH();
+}
+
+static void menuNavigateDown(void)
+{
+    if (gTheme->coverflow == NULL)
+        menuNextV();
+    else
+        menuNextH();
+}
+
 void menuSetSelectedItem(menu_item_t *item)
 {
     menu_list_t *itm = menu;
@@ -989,13 +1021,13 @@ void menuRenderMain(void)
 void menuHandleInputMain()
 {
     if (getKey(KEY_LEFT)) {
-        menuPrevH();
+        menuNavigateLeft();
     } else if (getKey(KEY_RIGHT)) {
-        menuNextH();
+        menuNavigateRight();
     } else if (getKey(KEY_UP)) {
-        menuPrevV();
+        menuNavigateUp();
     } else if (getKey(KEY_DOWN)) {
-        menuNextV();
+        menuNavigateDown();
     } else if (getKeyOn(KEY_CROSS)) {
         selected_item->item->execCross(selected_item->item);
     } else if (getKeyOn(KEY_TRIANGLE)) {
@@ -1053,9 +1085,9 @@ void menuHandleInputInfo()
         else
             selected_item->item->execCross(selected_item->item);
     } else if (getKey(KEY_UP)) {
-        menuPrevV();
+        menuNavigateUp();
     } else if (getKey(KEY_DOWN)) {
-        menuNextV();
+        menuNavigateDown();
     } else if (getKeyOn(KEY_CIRCLE)) {
         if (gSelectButton == KEY_CROSS)
             guiSwitchScreen(GUI_SCREEN_MAIN);
