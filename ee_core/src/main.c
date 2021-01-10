@@ -33,6 +33,7 @@ char ExitPath[32];
 int HDDSpindown;
 int EnableGSMOp;
 int EnableCheatOp;
+int IGSSaveDevice;
 #ifdef PADEMU
 int EnablePadEmuOp;
 int PadEmuSettings;
@@ -137,6 +138,7 @@ static int eecoreInit(int argc, char **argv)
         k576P_fix = _strtoui(_strtok(NULL, " "));
         kGsDxDyOffsetSupported = _strtoui(_strtok(NULL, " "));
         FIELD_fix = _strtoui(_strtok(NULL, " "));
+        IGSSaveDevice = _strtoui(_strtok(NULL, " "));
 
         UpdateGSMParams(interlace, mode, ffmd, display, syncv, smode2, dx_offset, dy_offset, k576P_fix, kGsDxDyOffsetSupported, FIELD_fix);
         EnableGSM();

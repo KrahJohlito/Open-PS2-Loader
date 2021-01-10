@@ -26,6 +26,8 @@
 #define NEWLIB_PORT_AWARE
 #include "fileio.h"
 
+extern int IGSSaveDevice;
+
 static void FastDelay(int count)
 {
     int i, ret;
@@ -386,7 +388,7 @@ static void ConvertColors16(u16 *buffer, u32 dimensions)
     }
 }
 
-static void SaveTextFile(u32 buffer, u16 width, u16 height, u8 pixel_size, u32 image_size, u8 Number)
+static void SaveTextFile(u32 buffer, u16 width, u16 height, u8 pixel_size, u32 image_size, u8 Number, char *device)
 {
 
     delay(1);
@@ -413,7 +415,7 @@ static void SaveTextFile(u32 buffer, u16 width, u16 height, u8 pixel_size, u32 i
     u64 display2 = GSMSourceGSRegs.display2;
 
     // Sequential number, inherited from Bitmap File
-    _strcpy(PathFilenameExtension, "mc1:/");
+    _strcpy(PathFilenameExtension, device);
     _strcat(PathFilenameExtension, GameID);
     _strcat(PathFilenameExtension, "_GS(");
     u8todecstr(Number, u8text, 3);
@@ -570,7 +572,7 @@ static void SaveTextFile(u32 buffer, u16 width, u16 height, u8 pixel_size, u32 i
     GS_BGCOLOUR = 0x000000; //Black
 }
 
-static u8 SaveBitmapFile(u16 width, u16 height, u8 pixel_size, void *buffer, u8 intffmd)
+static u8 SaveBitmapFile(u16 width, u16 height, u8 pixel_size, void *buffer, u8 intffmd, char *device)
 {
 
     delay(1);
@@ -611,7 +613,7 @@ static u8 SaveBitmapFile(u16 width, u16 height, u8 pixel_size, void *buffer, u8 
         if (Number == 255)               //255 screenshots per-game should be enough? lol
             BlinkColour(6, 0x0000FF, 1); //Red
         Number++;
-        _strcpy(PathFilenameExtension, "mc1:/");
+        _strcpy(PathFilenameExtension, device);
         _strcat(PathFilenameExtension, GameID);
         _strcat(PathFilenameExtension, "_GS(");
         u8todecstr(Number, u8text, 3);
@@ -719,6 +721,9 @@ int InGameScreenshot(void)
 
     u8 Number;
 
+    char device[8];
+    u8 ret;
+
     pmode = GSMSourceGSRegs.pmode;
     smode2 = GSMSourceGSRegs.smode2;
     dispfb1 = GSMSourceGSRegs.dispfb1;
@@ -779,12 +784,32 @@ int InGameScreenshot(void)
     LoadModule("rom0:SIO2MAN", 0, NULL);
     LoadModule("rom0:MCMAN", 0, NULL);
 
+    if (IGSSaveDevice == 0)
+        _strcpy(device, "mc0:");
+    else if (IGSSaveDevice == 1)
+        _strcpy(device, "mc1:");
+    else if (IGSSaveDevice == 2) {
+        _strcpy(device, "mass:");
+        ret = LoadModule("mc0:SYS-CONF/USBD.IRX", 0, NULL);
+        if (ret >= 0)
+            ret = LoadModule("mc0:SYS-CONF/USBHDFSD.IRX", 0, NULL);
+        else {
+            ret = LoadModule("mc1:SYS-CONF/USBD.IRX", 0, NULL);
+            ret = LoadModule("mc1:SYS-CONF/USBHDFSD.IRX", 0, NULL);
+        }
+
+        if (ret >= 0) {
+            BlinkColour(4, 0xFF8000, 0); // Blue sky
+            delay(5);                    // Wait for device to be detected.
+        }
+    }
+
     //Save IGS Bitmap File first, since it's the bigger file)
     intffmd = GET_SMODE2_INTFFMD(smode2);
-    Number = SaveBitmapFile(width, height, pixel_size, buffer, intffmd);
+    Number = SaveBitmapFile(width, height, pixel_size, buffer, intffmd, device);
 
     //The Number used on Bitmap File is returned to the related Text File, in order their both Sequential Numbers match
-    SaveTextFile((u32)buffer, width, height, pixel_size, image_size, Number);
+    SaveTextFile((u32)buffer, width, height, pixel_size, image_size, Number, device);
 
     //Clear buffer
     ClearBuffer(buffer, image_size + 52);

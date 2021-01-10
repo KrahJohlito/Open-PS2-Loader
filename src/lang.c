@@ -287,6 +287,8 @@ static char *internalEnglish[LANG_STR_COUNT] = {
     "Release",
     "Developer",
     "Description",
+    "IGS Save Location",
+    "USB is only available if a FMCB Memory Card is present",
 };
 
 static int guiLangID = 0;

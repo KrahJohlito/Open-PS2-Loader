@@ -32,6 +32,7 @@ static int GSMVMode;
 static int GSMXOffset;
 static int GSMYOffset;
 static int GSMFIELDFix;
+static int IGSSaveDevice;
 
 static int EnableCheat;
 static int CheatMode;
@@ -344,6 +345,7 @@ void guiGameShowGSConfig(void)
 {
     // configure the enumerations
     const char *settingsSource[] = {_l(_STR_GLOBAL_SETTINGS), _l(_STR_PERGAME_SETTINGS), NULL};
+    const char *igsDevice[] = {"MC0", "MC1", "USB", NULL};
     // clang-format off
     const char *gsmvmodeNames[] = {
         "NTSC",
@@ -385,6 +387,8 @@ void guiGameShowGSConfig(void)
     diaSetEnabled(diaGSConfig, GSMCFG_GSMXOFFSET, EnableGSM);
     diaSetEnabled(diaGSConfig, GSMCFG_GSMYOFFSET, EnableGSM);
     diaSetEnabled(diaGSConfig, GSMCFG_GSMFIELDFIX, EnableGSM);
+
+    diaSetEnum(diaGSConfig, GSMCFG_IGSSD, igsDevice);
 
     diaExecuteDialog(diaGSConfig, -1, 1, &guiGameGSMUpdater);
 }
@@ -812,6 +816,7 @@ int guiGameSaveConfig(config_set_t *configSet, item_list_t *support)
     diaGetInt(diaGSConfig, GSMCFG_GSMXOFFSET, &GSMXOffset);
     diaGetInt(diaGSConfig, GSMCFG_GSMYOFFSET, &GSMYOffset);
     diaGetInt(diaGSConfig, GSMCFG_GSMFIELDFIX, &GSMFIELDFix);
+    diaGetInt(diaGSConfig, GSMCFG_IGSSD, &IGSSaveDevice);
 
     if (gGSMSource == SETTINGS_PERGAME) {
         result = configSetInt(configSet, CONFIG_ITEM_GSMSOURCE, gGSMSource);
@@ -839,12 +844,17 @@ int guiGameSaveConfig(config_set_t *configSet, item_list_t *support)
             result = configSetInt(configSet, CONFIG_ITEM_GSMFIELDFIX, GSMFIELDFix);
         else
             configRemoveKey(configSet, CONFIG_ITEM_GSMFIELDFIX);
+        if (IGSSaveDevice != 1)
+            result = configSetInt(configSet, CONFIG_ITEM_IGSSD, IGSSaveDevice);
+        else
+            configRemoveKey(configSet, CONFIG_ITEM_IGSSD);
     } else if (gGSMSource == SETTINGS_GLOBAL) {
         configSetInt(configGame, CONFIG_ITEM_ENABLEGSM, EnableGSM);
         configSetInt(configGame, CONFIG_ITEM_GSMVMODE, GSMVMode);
         configSetInt(configGame, CONFIG_ITEM_GSMXOFFSET, GSMXOffset);
         configSetInt(configGame, CONFIG_ITEM_GSMYOFFSET, GSMYOffset);
         configSetInt(configGame, CONFIG_ITEM_GSMFIELDFIX, GSMFIELDFix);
+        configSetInt(configGame, CONFIG_ITEM_IGSSD, IGSSaveDevice);
     }
 
     /// Cheats ///
@@ -919,6 +929,7 @@ void guiGameRemoveGlobalSettings(config_set_t *configGame)
         configRemoveKey(configGame, CONFIG_ITEM_GSMXOFFSET);
         configRemoveKey(configGame, CONFIG_ITEM_GSMYOFFSET);
         configRemoveKey(configGame, CONFIG_ITEM_GSMFIELDFIX);
+        configRemoveKey(configGame, CONFIG_ITEM_IGSSD);
 
 #ifdef PADEMU
         // PADEMU
@@ -945,6 +956,7 @@ void guiGameRemoveSettings(config_set_t *configSet)
         configRemoveKey(configSet, CONFIG_ITEM_GSMXOFFSET);
         configRemoveKey(configSet, CONFIG_ITEM_GSMYOFFSET);
         configRemoveKey(configSet, CONFIG_ITEM_GSMFIELDFIX);
+        configRemoveKey(configSet, CONFIG_ITEM_IGSSD);
 
         // Cheats
         configRemoveKey(configSet, CONFIG_ITEM_CHEATSSOURCE);
@@ -978,6 +990,7 @@ static void guiGameLoadGSMConfig(config_set_t *configSet, config_set_t *configGa
     GSMXOffset = 0;
     GSMYOffset = 0;
     GSMFIELDFix = 0;
+    IGSSaveDevice = 1; // default to mc1.
 
     // set global settings.
     gGSMSource = 0;
@@ -986,6 +999,7 @@ static void guiGameLoadGSMConfig(config_set_t *configSet, config_set_t *configGa
     configGetInt(configGame, CONFIG_ITEM_GSMXOFFSET, &GSMXOffset);
     configGetInt(configGame, CONFIG_ITEM_GSMYOFFSET, &GSMYOffset);
     configGetInt(configGame, CONFIG_ITEM_GSMFIELDFIX, &GSMFIELDFix);
+    configGetInt(configGame, CONFIG_ITEM_IGSSD, &IGSSaveDevice);
 
     // override global with per-game settings if available and selected.
     configGetInt(configSet, CONFIG_ITEM_GSMSOURCE, &gGSMSource);
@@ -1000,6 +1014,8 @@ static void guiGameLoadGSMConfig(config_set_t *configSet, config_set_t *configGa
             GSMYOffset = 0;
         if (!configGetInt(configSet, CONFIG_ITEM_GSMFIELDFIX, &GSMFIELDFix))
             GSMFIELDFix = 0;
+        if (!configGetInt(configSet, CONFIG_ITEM_IGSSD, &IGSSaveDevice))
+            IGSSaveDevice = 1;
     }
 
     // set gui settings.
@@ -1009,6 +1025,7 @@ static void guiGameLoadGSMConfig(config_set_t *configSet, config_set_t *configGa
     diaSetInt(diaGSConfig, GSMCFG_GSMXOFFSET, GSMXOffset);
     diaSetInt(diaGSConfig, GSMCFG_GSMYOFFSET, GSMYOffset);
     diaSetInt(diaGSConfig, GSMCFG_GSMFIELDFIX, GSMFIELDFix);
+    diaSetInt(diaGSConfig, GSMCFG_IGSSD, IGSSaveDevice);
 }
 
 static void guiGameLoadCheatsConfig(config_set_t *configSet, config_set_t *configGame)

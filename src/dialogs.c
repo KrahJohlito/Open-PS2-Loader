@@ -480,6 +480,12 @@ struct UIItem diaGSConfig[] = {
     {UI_SPACER},
     {UI_BOOL, GSMCFG_GSMFIELDFIX, 1, 1, _STR_HINT_GSM_FIELD_FIX, 0, 0, {.intvalue = {0, 0}}},
     {UI_BREAK},
+    {UI_BREAK},
+
+    {UI_LABEL, 0, 1, 1, -1, -40, 0, {.label = {NULL, _STR_IGS_SAVE_DEVICE}}},
+    {UI_SPACER},
+    {UI_ENUM, GSMCFG_IGSSD, 1, 1, _STR_HINT_IGS_SAVE_DEVICE, 0, 0, {.intvalue = {0, 0}}},
+    {UI_BREAK},
 
     // buttons
     {UI_OK, 0, 1, 1, -1, 0, 0, {.label = {NULL, _STR_OK}}},
