@@ -195,7 +195,7 @@ static void Screenshot(u16 sbp, u8 sbw, u8 spsm, u16 width, u16 height, u32 dime
     EnableGIFPATH3_32[2] = GS_VIF1_NOP;
     EnableGIFPATH3_32[3] = GS_VIF1_NOP;
 
-    u32 DMAChain[20 * 2] ALIGNED(16);
+    static u32 DMAChain[20 * 2] ALIGNED(16);
     u32 *DMA32Packet = (u32 *)&DMAChain;
     u64 *DMA64Packet = (u64 *)(DMA32Packet + 4);
     u32 IMRState;
@@ -780,7 +780,6 @@ int InGameScreenshot(void)
     GS_BGCOLOUR = 0x660033; //Midnight Blue
 
     //Load modules.
-    LoadFileInit();
     LoadModule("rom0:SIO2MAN", 0, NULL);
     LoadModule("rom0:MCMAN", 0, NULL);
 
@@ -813,15 +812,6 @@ int InGameScreenshot(void)
 
     //Clear buffer
     ClearBuffer(buffer, image_size + 52);
-
-    // Exit services
-    fioExit();
-    LoadFileExit();
-    SifExitRpc();
-    FlushCache(0);
-    FlushCache(2);
-
-    BlinkColour(1, 0xFF0000, 0); //Double Blue :-)
 
     return 0;
 }

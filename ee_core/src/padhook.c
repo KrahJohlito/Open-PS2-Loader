@@ -16,9 +16,7 @@
   Copyright (C) 2009 misfire <misfire@xploderfreax.de>
 */
 
-#include <ee_regs.h>
 #include <iopcontrol.h>
-#include "asm.h"
 #include "ee_core.h"
 #include "iopmgr.h"
 #include "modmgr.h"
@@ -334,38 +332,17 @@ static int IGR_Intc_Handler(int cause)
     // Suspend and Change priority of all threads other then our IGR thread
     // Wakeup and Change priority of our IGR thread
     if (Pad_Data.combo_type != 0x00) {
-        //While ExecPS2() would also do some of these (also calls ResetEE),
-        //initialization seems to sometimes get stuck at "Initializing GS", perhaps when waiting for the V-Sync start interrupt.
-        //That happens before ResetEE is called, so ResetEE has to be called earlier.
-
-        //Wait for preceding loads & stores to complete.
-        asm volatile("sync.l\n");
-
-        //Stop all ongoing transfers (except for SIF0, SIF1 & SIF2 - DMA CH 5, 6 & 7).
-        u32 dmaEnableR = *R_EE_D_ENABLER;
-        *R_EE_D_ENABLEW = dmaEnableR | 0x10000;
-        *R_EE_D_CTRL;
-        *R_EE_D_STAT;
-        *R_EE_D0_CHCR = 0;
-        *R_EE_D1_CHCR = 0;
-        *R_EE_D2_CHCR = 0;
-        *R_EE_D3_CHCR = 0;
-        *R_EE_D4_CHCR = 0;
-        *R_EE_D8_CHCR = 0;
-        *R_EE_D9_CHCR = 0;
-        *R_EE_D_ENABLEW = dmaEnableR;
-
-        //Wait for preceding loads & stores to complete.
-        asm volatile("sync.l\n");
-
-        *R_EE_GS_CSR = 0x100; //Reset GS
-        asm volatile("sync.l\n");
-        while (*R_EE_GS_CSR & 0x100) {
-        };
-
-        //Disable interrupts & reset some peripherals, back to a standard state.
-        //Call ResetEE(0x7F) from an interrupt handler.
-        iResetEE(0x7F);
+        // Disable Interrupts
+        iDisableIntc(kINTC_GS);
+        iDisableIntc(kINTC_VBLANK_START);
+        iDisableIntc(kINTC_VBLANK_END);
+        iDisableIntc(kINTC_VIF0);
+        iDisableIntc(kINTC_VIF1);
+        iDisableIntc(kINTC_VU0);
+        iDisableIntc(kINTC_VU1);
+        iDisableIntc(kINTC_IPU);
+        iDisableIntc(kINTC_TIMER0);
+        iDisableIntc(kINTC_TIMER1);
 
         // Loop for each threads, skipping the idle & IGR threads.
         for (i = 1; i < 256; i++) {
