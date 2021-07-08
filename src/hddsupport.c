@@ -131,7 +131,6 @@ static void hddFindOPLPartition(void)
             configFree(config);
             close(fd);
 
-            fileXioUmount(hddPrefix);
             return;
         }
 
@@ -151,7 +150,6 @@ static void hddFindOPLPartition(void)
     }
 
     snprintf(gOPLPart, sizeof(gOPLPart), "hdd0:+OPL");
-    fileXioUmount(hddPrefix);
 
     return;
 }
@@ -233,6 +231,8 @@ void hddLoadModules(void)
 
         if (gOPLPart[0] == '\0')
             hddFindOPLPartition();
+
+        fileXioUmount(hddPrefix);
 
         ret = fileXioMount(hddPrefix, gOPLPart, FIO_MT_RDWR);
         if (ret == -ENOENT) {
