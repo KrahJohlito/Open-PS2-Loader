@@ -1262,6 +1262,16 @@ void guiDrawSubMenuHints(void)
     x += 12;
     x = guiDrawIconAndText(gSelectButton == KEY_CIRCLE ? subMenuIcons[1] : subMenuIcons[0], subMenuHints[1], gTheme->fonts[0], x, y, gTheme->textColor);
 }
+extern char zero[128];
+extern char one[128];
+extern char two[128];
+extern char bootname[128];
+
+extern char media[128];
+extern char abc[128];
+extern char abcd[128];
+extern char abcde[128];
+extern char abcdef[128];
 
 static int endIntro = 0; // Break intro loop and start 'Last Played Auto Start' countdown
 static void guiDrawOverlays()
@@ -1282,9 +1292,16 @@ static void guiDrawOverlays()
 
     if (busyAlpha > 0x00)
         guiDrawBusy(busyAlpha);
+    char text[20];
+fntRenderString(gTheme->fonts[0], screenWidth /2, 15, ALIGN_LEFT, 0, 0, media, GS_SETREG_RGBA(0x60, 0x60, 0x60, 0x80));
+fntRenderString(gTheme->fonts[0], screenWidth /2, 30, ALIGN_LEFT, 0, 0, abc, GS_SETREG_RGBA(0x60, 0x60, 0x60, 0x80));
+fntRenderString(gTheme->fonts[0], screenWidth /2, 45, ALIGN_LEFT, 0, 0, abcd, GS_SETREG_RGBA(0x60, 0x60, 0x60, 0x80));
+fntRenderString(gTheme->fonts[0], screenWidth /2, 60, ALIGN_LEFT, 0, 0, abcde, GS_SETREG_RGBA(0x60, 0x60, 0x60, 0x80));
+snprintf(text, sizeof(text), "namelen=%d", strlen(bootname));
+fntRenderString(gTheme->fonts[0], screenWidth /2, 75, ALIGN_LEFT, 0, 0, abcdef, GS_SETREG_RGBA(0x60, 0x60, 0x60, 0x80));
 
 #ifdef __DEBUG
-    char text[20];
+
     int x = screenWidth - 120;
     int y = 15;
     int yadd = 15;

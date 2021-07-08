@@ -256,6 +256,91 @@ int hddGetHDLGamelist(hdl_games_list_t *game_list)
     return ret;
 }
 
+int hddGetHDLGameInfoAuto(const char *partition, hdl_game_info_t *ginfo)
+{
+    int fd, ret = 0;
+    char PathToPart[256];
+
+    sprintf(PathToPart, "hdd0:%s", partition);
+
+    if ((fd = fileXioDopen(PathToPart)) >= 0) {
+        struct GameDataEntry *pGameEntry = NULL;
+        iox_dirent_t dirent;
+
+        while (fileXioDread(fd, &dirent) > 0) {
+            if (dirent.stat.mode == HDL_FS_MAGIC) {
+                pGameEntry = malloc(sizeof(struct GameDataEntry));
+
+                if (pGameEntry == NULL)
+                    return -1;
+
+                    strncpy(pGameEntry->id, dirent.name, APA_IDMAX);
+                    pGameEntry->size = 0;
+                    pGameEntry->lba = 0;
+
+                if (!(dirent.stat.attr & APA_FLAG_SUB)) {
+                    // Note: The APA specification states that there is a 4KB area used for storing the partition's information, before the extended attribute area.
+                    pGameEntry->lba = dirent.stat.private_5 + (HDL_GAME_DATA_OFFSET + 4096) / 512;
+                }
+
+                pGameEntry->size += (dirent.stat.size / 4); // size in HDD sectors * (512 / 2048) = 0.25x
+            }
+        }
+
+        fileXioDclose(fd);
+
+        ret = hddGetHDLGameInfo(pGameEntry, ginfo);
+        free(pGameEntry);
+    } else
+        ret = fd;
+
+    return ret;
+	/*u32 size;
+	static char buf[1024] ALIGNED(64);
+	int fd, ret;
+	iox_stat_t PartStat;
+	char *PathToPart;
+
+	PathToPart=malloc(strlen(partition)+6);
+	sprintf(PathToPart, "hdd0:%s", partition);
+
+	if((fd=fileXioOpen(PathToPart, O_RDONLY, 0666))>=0){
+		fileXioLseek(fd, HDL_GAME_DATA_OFFSET, SEEK_SET);
+		ret=fileXioRead(fd, buf, 1024);
+		fileXioClose(fd);
+
+		if(ret == 1024) {
+			fileXioGetStat(PathToPart, &PartStat);
+
+			hdl_apa_header *hdl_header = (hdl_apa_header *)buf;
+
+			// calculate total size
+			size = PartStat.size;
+
+			strncpy(ginfo->partition_name, partition, sizeof(ginfo->partition_name)-1);
+			ginfo->partition_name[sizeof(ginfo->partition_name)-1]='\0';
+			strncpy(ginfo->name, hdl_header->gamename, sizeof(ginfo->name)-1);
+			ginfo->name[sizeof(ginfo->name)-1]='\0';
+			strncpy(ginfo->startup, hdl_header->startup, sizeof(ginfo->startup)-1);
+			ginfo->startup[sizeof(ginfo->startup)-1]='\0';
+			ginfo->hdl_compat_flags = hdl_header->hdl_compat_flags;
+			ginfo->ops2l_compat_flags = hdl_header->ops2l_compat_flags;
+			ginfo->dma_type = hdl_header->dma_type;
+			ginfo->dma_mode = hdl_header->dma_mode;
+			ginfo->layer_break = hdl_header->layer1_start;
+			ginfo->disctype = hdl_header->discType;
+			ginfo->start_sector = PartStat.private_5 + (HDL_GAME_DATA_OFFSET+4096)/512;	/* Note: The APA specification states that there is a 4KB area used for storing the partition's information, before the extended attribute area. */
+			/*ginfo->total_size_in_kb = size / 2;
+		}
+		else ret=-EIO;
+	}
+	else ret = fd;
+
+	free(PathToPart);
+
+ 	return ret;*/
+}
+
 //-------------------------------------------------------------------------
 void hddFreeHDLGamelist(hdl_games_list_t *game_list)
 {

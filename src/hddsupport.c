@@ -330,6 +330,12 @@ static void hddRenameGame(int id, char *newName)
     hddForceUpdate = 1;
 }
 
+char media[128];
+char abc[128];
+char abcd[128];
+char abcde[128];
+char abcdef[128];
+
 void hddLaunchGame(int id, config_set_t *configSet)
 {
     int i, size_irx = 0;
@@ -340,10 +346,17 @@ void hddLaunchGame(int id, config_set_t *configSet)
     hdl_game_info_t *game;
     struct cdvdman_settings_hdd *settings;
 
-    if (gAutoLaunchGame == NULL)
-        game = &hddGames.games[id];
-    else
+    if (id == -1)
         game = gAutoLaunchGame;
+    else
+        game = &hddGames.games[id];
+
+    /*sprintf(ab, game->partition_name);
+    sprintf(abc, game->name);
+
+    sprintf(abcd, "%u", game->disctype);
+    sprintf(abcde, "%u", game->layer_break);
+    sprintf(abcdef, "%u", game->total_size_in_kb);*/
 
     apa_sub_t parts[APA_MAXSUB + 1];
     char vmc_name[2][32];
@@ -486,16 +499,12 @@ void hddLaunchGame(int id, config_set_t *configSet)
     if (gPS2Logo)
         EnablePS2Logo = CheckPS2Logo(0, game->start_sector + OPL_HDD_MODE_PS2LOGO_OFFSET);
 
-    if (gAutoLaunchGame == NULL)
-        deinit(NO_EXCEPTION, HDD_MODE); // CAREFUL: deinit will call hddCleanUp, so hddGames/game will be freed
-    else {
-        //mini deinit
+    if (id == -1) {
         ioBlockOps(1);
 #ifdef PADEMU
         ds34usb_reset();
         ds34bt_reset();
 #endif
-
         configFree(configSet);
         configSet = NULL;
 
@@ -507,7 +516,8 @@ void hddLaunchGame(int id, config_set_t *configSet)
 
         ioEnd();
         configEnd();
-    }
+    } else
+        deinit(NO_EXCEPTION, HDD_MODE); // CAREFUL: deinit will call hddCleanUp, so hddGames/game will be freed
 
     sysLaunchLoaderElf(filename, "HDD_MODE", size_irx, irx, size_mcemu_irx, &hdd_mcemu_irx, EnablePS2Logo, compatMode);
 }

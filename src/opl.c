@@ -1688,10 +1688,12 @@ unsigned int _strtoui(const char *p)
     return r;
 }
 
+extern int hddGetHDLGameInfoAuto(const char *partition, hdl_game_info_t *ginfo);
+
 static void autoLaunchHDDGame(char *argv[])
 {
+    int ret;
     char path[256];
-    int fd;
     config_set_t *configSet;
 
     gAutoLaunchGame = malloc(sizeof(hdl_game_info_t));
@@ -1706,11 +1708,10 @@ static void autoLaunchHDDGame(char *argv[])
     gAutoLaunchGame->start_sector = _strtoui(strtok(argv[2], " "));
     snprintf(gOPLPart, sizeof(gOPLPart), "hdd0:%s", argv[3]);
 
-    ioInit();
-    LOG_ENABLE();
-
-    checkLoadConfigHDD(CONFIG_OPL | CONFIG_GAME);
-    config_set_t *configOPL = configGetByType(CONFIG_OPL);
+    //hard coded for testing
+    /*snprintf(gAutoLaunchGame->startup, sizeof(gAutoLaunchGame->startup), "SLES_501.09");
+    gAutoLaunchGame->start_sector = 60033032;
+    snprintf(gOPLPart, sizeof(gOPLPart), "hdd0:+OPL");*/
 
     gETHOpMode = 0;
     gRememberLastPlayed = 0;
@@ -1718,22 +1719,42 @@ static void autoLaunchHDDGame(char *argv[])
     gPS2Logo = 0;
     gExitPath[0] = '\0';
     gHDDSpindown = 20;
+    gHDDPrefix = "pfs0:";
 
-    configGetInt(configOPL, CONFIG_OPL_DISABLE_DEBUG, &gDisableDebug);
-    configGetInt(configOPL, CONFIG_OPL_PS2LOGO, &gPS2Logo);
-    configGetStrCopy(configOPL, CONFIG_OPL_EXIT_PATH, gExitPath, sizeof(gExitPath));
-    configGetInt(configOPL, CONFIG_OPL_HDD_SPINDOWN, &gHDDSpindown);
+    ioInit();
+    LOG_ENABLE();
+
+    ret = checkLoadConfigHDD(lscstatus);
+    if (ret >= 0) {
+        ret = configReadMulti(lscstatus);
+
+        if (lscstatus & CONFIG_OPL && ret & CONFIG_OPL) {
+            config_set_t *configOPL = configGetByType(CONFIG_OPL);
+
+            configGetInt(configOPL, CONFIG_OPL_DISABLE_DEBUG, &gDisableDebug);
+            configGetInt(configOPL, CONFIG_OPL_PS2LOGO, &gPS2Logo);
+            configGetStrCopy(configOPL, CONFIG_OPL_EXIT_PATH, gExitPath, sizeof(gExitPath));
+            configGetInt(configOPL, CONFIG_OPL_HDD_SPINDOWN, &gHDDSpindown);
+        }
+    }
+
+    //ret = hddGetHDLGameInfoAuto("PP.HDL.7 Blades _EU_", gAutoLaunchGame);
+    //if (ret < 0)
+        //return;
 
     snprintf(path, sizeof(path), "%sCFG/%s.cfg", gHDDPrefix, gAutoLaunchGame->startup);
-    fd = open(path, O_RDONLY);
-
     configSet = configAlloc(0, NULL, path);
     configRead(configSet);
 
-    close(fd);
+    configSetStr(configSet, CONFIG_ITEM_STARTUP, gAutoLaunchGame->startup);
 
     hddLaunchGame(-1, configSet);
 }
+
+char zero[128];
+char one[128];
+char two[128];
+char bootname[128];
 
 // --------------------- Main --------------------
 int main(int argc, char *argv[])
@@ -1759,6 +1780,11 @@ int main(int argc, char *argv[])
     if (argc >= 5) {
         if (argv[4][0] == 'm' && argv[4][1] == 'i' && argv[4][2] == 'n' && argv[4][3] == 'i')
             autoLaunchHDDGame(argv);
+
+    /*sprintf(zero, argv[0]);
+    sprintf(one, argv[1]);
+    sprintf(two, argv[2]);
+    sprintf(bootname, argv[3]);*/
     }
 
     init();
