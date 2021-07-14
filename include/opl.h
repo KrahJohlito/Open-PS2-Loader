@@ -188,6 +188,7 @@ extern unsigned char gDefaultUITextColor[3];
 extern hdl_game_info_t *gAutoLaunchGame;
 extern char *gHDDPrefix;
 extern char gOPLPart[128];
+extern char gAPPPart[128];
 
 void setDefaultColors(void);
 

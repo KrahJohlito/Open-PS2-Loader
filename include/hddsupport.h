@@ -63,5 +63,6 @@ void hddInit();
 item_list_t *hddGetObject(int initOnly);
 void hddLoadModules(void);
 void hddLaunchGame(int id, config_set_t *configSet);
+void hddMountAppsPartition(void);
 
 #endif

@@ -29,8 +29,10 @@
 static unsigned char hddForceUpdate = 0;
 static unsigned char hddHDProKitDetected = 0;
 static unsigned char hddModulesLoaded = 0;
+static unsigned char appsPartitionMounted = 0;
 
 static char *hddPrefix = "pfs0:";
+static char *hddAppsPrefix = "pfs1:";
 static hdl_games_list_t hddGames;
 
 // forward declaration
@@ -118,7 +120,7 @@ static void hddFindOPLPartition(void)
 
     fileXioUmount(hddPrefix);
 
-    ret = fileXioMount("pfs0:", "hdd0:__common", FIO_MT_RDWR);
+    ret = fileXioMount(hddPrefix, "hdd0:__common", FIO_MT_RDWR);
     if (ret == 0) {
         fd = open("pfs0:OPL/conf_hdd.cfg", O_RDONLY);
         if (fd >= 0) {
@@ -181,6 +183,17 @@ void hddLoadModules(void)
                            "-n"
                            "\0"
                            "20";
+    static char pfsarg[] = "-m"
+                           "\0"
+                           "4"
+                           "\0"
+                           "-o"
+                           "\0"
+                           "10"
+                           "\0"
+                           "-n"
+                           "\0"
+                           "40";
 
     LOG("HDDSUPPORT LoadModules\n");
 
@@ -220,7 +233,7 @@ void hddLoadModules(void)
             return;
         }
 
-        ret = sysLoadModuleBuffer(&ps2fs_irx, size_ps2fs_irx, 0, NULL);
+        ret = sysLoadModuleBuffer(&ps2fs_irx, size_ps2fs_irx, sizeof(pfsarg), pfsarg);
         if (ret < 0) {
             LOG("HDD: HardDisk Drive not formatted (PFS).\n");
             setErrorMessageWithCode(_STR_HDD_NOT_FORMATTED_ERROR, ERROR_HDD_MODULE_PFS_FAILURE);
@@ -245,6 +258,19 @@ void hddLoadModules(void)
             hddCheckOPLFolder(hddPrefix);
             gHDDPrefix = "pfs0:OPL/";
         }
+    }
+}
+
+void hddMountAppsPartition(void)
+{
+    if (gAPPPart[0] != '\0' && !appsPartitionMounted) {
+        char appsPartition[128];
+
+        fileXioUmount(hddAppsPrefix);
+        snprintf(appsPartition, sizeof(appsPartition), "hdd0:%s", gAPPPart);
+        int ret = fileXioMount(hddAppsPrefix, appsPartition, FIO_MT_RDWR);
+        if (ret == 0)
+            appsPartitionMounted = 1;
     }
 }
 
@@ -546,8 +572,12 @@ static void hddCleanUp(int exception)
     if (hddGameList.enabled) {
         hddFreeHDLGamelist(&hddGames);
 
-        if ((exception & UNMOUNT_EXCEPTION) == 0)
+        if ((exception & UNMOUNT_EXCEPTION) == 0) {
+            if (appsPartitionMounted)
+                fileXioUmount(hddAppsPrefix);
+
             fileXioUmount(hddPrefix);
+        }
     }
 
     // UI may have loaded modules outside of HDD mode, so deinitialize regardless of the enabled status.
@@ -571,6 +601,9 @@ static void hddShutdown(void)
     if (hddGameList.enabled) {
         hddFreeHDLGamelist(&hddGames);
         fileXioUmount(hddPrefix);
+
+        if (appsPartitionMounted)
+            fileXioUmount(hddAppsPrefix);
     }
 
     // UI may have loaded modules outside of HDD mode, so deinitialize regardless of the enabled status.
@@ -694,7 +727,10 @@ static int hddUpdateGameListCache(hdl_games_list_t *cache, hdl_games_list_t *gam
 
 static void hddGetAppsPath(char *path, int max)
 {
-    snprintf(path, max, "%sAPPS", gHDDPrefix);
+    if (!appsPartitionMounted)
+        snprintf(path, max, "%sAPPS", gHDDPrefix);
+    else if (appsPartitionMounted)
+        snprintf(path, max, "%sAPPS", hddAppsPrefix);
 }
 
 static void hddGetLegacyAppsPath(char *path, int max)
