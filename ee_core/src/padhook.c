@@ -94,19 +94,19 @@ static void t_loadElf(void)
 	char *argv[2];
 	t_ExecData elf;
 
-	if(!DisableDebug)
+	if(EnableDebug)
 		GS_BGCOLOUR = 0x80FF00; // Blue Green
 
 	// Init RPC & CMD
 	SifInitRpc(0);
 
-	if(!DisableDebug)
+	if(EnableDebug)
 		GS_BGCOLOUR = 0x000080; // Dark Red
 
 	// Apply Sbv patches
 	sbv_patch_disable_prefix_check();
 
-	if(!DisableDebug)
+	if(EnableDebug)
 		GS_BGCOLOUR = 0xFF8000; // Blue sky
 
 	// Load basic modules
@@ -129,14 +129,14 @@ static void t_loadElf(void)
 		FlushCache(0);
 		FlushCache(2);
 
-		if(!DisableDebug)
+		if(EnableDebug)
 			GS_BGCOLOUR = 0x0080FF; // Orange
 
 		// Execute BOOT.ELF
 		ExecPS2((void*)elf.epc, (void*)elf.gp, 1, argv);
 	}
 
-	if(!DisableDebug)
+	if(EnableDebug)
 	{
 		GS_BGCOLOUR = 0x0000FF; // Red
 		delay(5);
@@ -177,18 +177,18 @@ static void IGR_Thread(void *arg)
 	// If Pad Combo is Start + Select then Return to Home
 	if(Pad_Data.combo_type == IGR_COMBO_START_SELECT)
 	{
-		if(!DisableDebug)
+		if(EnableDebug)
 			GS_BGCOLOUR = 0xFFFFFF; // White
 
 		// Re-Init RPC & CMD
 		SifInitRpc(0);
 
-		if(!DisableDebug)
+		if(EnableDebug)
 			GS_BGCOLOUR = 0x800000; // Dark Blue
 
 		// Reset SPU
 		ResetSPU();
-		if(!DisableDebug)
+		if(EnableDebug)
 			GS_BGCOLOUR = 0x0000FF; // Red
 
 		// Reset IO Processor
@@ -231,12 +231,12 @@ static void IGR_Thread(void *arg)
 		{
 			DPRINTF("Stopping GSM...\n");
 			DisableGSM();
-			if(!DisableDebug)
+			if(EnableDebug)
 				GS_BGCOLOUR = 0x00FF00; // Green
 		}
 #endif
 
-		if(!DisableDebug)
+		if(EnableDebug)
 			GS_BGCOLOUR = 0x00FFFF; // Yellow
 
 #ifdef CHEAT
@@ -244,20 +244,20 @@ static void IGR_Thread(void *arg)
 		{
 			DPRINTF("Stopping PS2RD Cheat Engine...\n");
 			DisableCheats();
-			if(!DisableDebug)
+			if(EnableDebug)
 				GS_BGCOLOUR = 0xFF0000; // Blue
 		}
 #endif
 
 		while (!SifIopSync()){;}
 
-		if(!DisableDebug)
+		if(EnableDebug)
 			GS_BGCOLOUR = 0xFF80FF; // Pink
 
 		// Init RPC & CMD
 		SifInitRpc(0);
 
-		if(!DisableDebug)
+		if(EnableDebug)
 			GS_BGCOLOUR = 0x008000; // Dark Green
 
 		// Exit services
@@ -503,7 +503,7 @@ int Install_PadOpen_Hook(u32 mem_start, u32 mem_end, int mode)
 		while (ptr)
 		{
 			// Purple while PadOpen pattern search
-			if(!DisableDebug)
+			if(EnableDebug)
 				GS_BGCOLOUR = 0x800080;		//Purple
 
 			mem_size = mem_end - (u32)ptr;
@@ -516,7 +516,7 @@ int Install_PadOpen_Hook(u32 mem_start, u32 mem_end, int mode)
 				found = 1;
 
 				// Green while PadOpen patches
-				if(!DisableDebug)
+				if(EnableDebug)
 				 	GS_BGCOLOUR = 0x008000;	//Dark green
 
 				// Save original PadOpen function
@@ -633,7 +633,7 @@ int Install_PadOpen_Hook(u32 mem_start, u32 mem_end, int mode)
 	}
 
 	// Done
-	if(!DisableDebug)
+	if(EnableDebug)
 		GS_BGCOLOUR = 0x000000;	//Black
 
 	return patched;

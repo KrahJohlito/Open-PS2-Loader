@@ -99,7 +99,7 @@ void t_loadElf(void)
 
 	DPRINTF("t_loadElf: elf path = '%s'\n", g_argv[0]);
 
-	if(!DisableDebug)
+	if(EnableDebug)
 		GS_BGCOLOUR = 0x00ff00;	//Green
 
 	DPRINTF("t_loadElf: cleaning user memory...");

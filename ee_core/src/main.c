@@ -22,6 +22,7 @@ void *ModStorageStart, *ModStorageEnd;
 
 int main(int argc, char **argv){
 	char ElfPath[32];
+	char *p;
 
 	DINIT();
 	DPRINTF("OPL EE core start!\n");
@@ -30,21 +31,23 @@ int main(int argc, char **argv){
 
 	int i = 0;
 
-	if (!_strncmp(argv[i], "USB_MODE", 8))
+	p = _strtok(argv[i], " ");
+	if (!_strncmp(p, "BDM_USB_MODE", 12))
 		GameMode = USB_MODE;
-	else if (!_strncmp(argv[i], "ETH_MODE", 8))
+	else if (!_strncmp(p, "ETH_MODE", 8))
 		GameMode = ETH_MODE;
-	else if (!_strncmp(argv[i], "HDD_MODE", 8))
+	else if (!_strncmp(p, "HDD_MODE", 8))
 		GameMode = HDD_MODE;
 	DPRINTF("Game Mode = %d\n", GameMode);
 
-	DisableDebug = 0;
-	if (!_strncmp(&argv[i][9], "1", 1)) {
-		DisableDebug = 1;
-		DPRINTF("Debug color screens enabled\n");
+	p = _strtok(NULL, " ");
+	EnableDebug = 0;
+	if (!_strncmp(p, "1", 1)) {
+		EnableDebug = 1;
+		DPRINTF("Debug Colors enabled\n");
 	}
 
-	char *p = _strtok(&argv[i][11], " ");
+	p = _strtok(NULL, " ");
 	if (!_strncmp(p, "Browser", 7))
 		ExitPath[0] = '\0';
 	else
@@ -75,12 +78,14 @@ int main(int argc, char **argv){
 #endif
 
 	i++;
+	// skip kernel config
+	i++;
 
 	ModStorageStart = (void*)_strtoui(_strtok(argv[i], " "));
 	ModStorageEnd = (void*)_strtoui(_strtok(NULL, " "));
 	i++;
 
-	argv[i][11]=0x00; // fix for 8+3 filename.
+	//argv[i][11]=0x00; // fix for 8+3 filename.
 	_strcpy(ElfPath, "cdrom0:\\");
 	_strcat(ElfPath, argv[i]);
 	_strcat(ElfPath, ";1");
@@ -128,7 +133,7 @@ int main(int argc, char **argv){
 	DPRINTF("Installing Kernel Hooks...\n");
 	Install_Kernel_Hooks();
 
-	if(!DisableDebug)
+	if(EnableDebug)
 		GS_BGCOLOUR = 0xff0000;	//Blue
 
 	SifExitRpc();
@@ -136,7 +141,7 @@ int main(int argc, char **argv){
 	DPRINTF("Executing '%s'...\n", ElfPath);
 	LoadExecPS2(ElfPath, 0, NULL);	
 
-	if(!DisableDebug)
+	if(EnableDebug)
 		GS_BGCOLOUR = 0x0000ff;	//Red
 	DPRINTF("LoadExecPS2 failed!\n");
 

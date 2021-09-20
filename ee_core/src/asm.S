@@ -54,7 +54,7 @@
 
 	/* loader.h */
 	.extern g_compat_mask
-	.extern DisableDebug
+	.extern EnableDebug
 
 	/* padhook.c */
 	.extern Install_PadOpen_Hook
@@ -83,7 +83,7 @@ _LoadExecPS2:
 	daddu	$s1, $a1, $zero /* argc 	*/
 	daddu	$s2, $a2, $zero /* argv 	*/
 
-	lw	$v0, DisableDebug
+	lw	$v0, EnableDebug
 	bne	$v0, $zero, 1f
 	nop
 
@@ -382,7 +382,7 @@ Hook_SifSetReg:
 	bne	$v0, $zero, 3f
 	nop
 
-	lw	$v0, DisableDebug
+	lw	$v0, EnableDebug
 	bne	$v0, $zero, 2f
 	nop
 
