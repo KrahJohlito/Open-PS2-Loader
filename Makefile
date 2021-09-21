@@ -19,16 +19,16 @@
 # Do not COMMENT out the variables!!
 
 #Enables/disables Virtual Memory Card (VMC) support
-VMC = 0
+VMC = 1
 
 #Enables/disables Right-To-Left (RTL) language support
 RTL = 0
 
 #Enables/disables Graphics Synthesizer Mode (GSM) selector
-GSM = 0
+GSM = 1
 
 #Enables/disables the cheat engine (PS2RD)
-CHEAT = 0
+CHEAT = 1
 
 #Enables/disables building of an edition of OPL that will support the DTL-T10000 (SDK v2.3+)
 DTL_T10000 = 0
@@ -315,22 +315,22 @@ eesync.s:
 usb_cdvdman.s:
 	echo "    * usb_cdvdman.irx"
 	$(MAKE) $(VMC_FLAGS) $(CDVDMAN_DEBUG_FLAGS) -C modules/iopcore/cdvdman -f Makefile.usb rebuild
-	$(BIN2S) modules/iopcore/cdvdman/cdvdman.irx asm/usb_cdvdman.s usb_cdvdman_irx
+	$(BIN2S) modules/iopcore/cdvdman/usb_cdvdman.irx asm/usb_cdvdman.s usb_cdvdman_irx
 
 smb_cdvdman.s:
 	echo "    * smb_cdvdman.irx"
 	$(MAKE) $(VMC_FLAGS) $(CDVDMAN_DEBUG_FLAGS) -C modules/iopcore/cdvdman -f Makefile.smb rebuild
-	$(BIN2S) modules/iopcore/cdvdman/cdvdman.irx asm/smb_cdvdman.s smb_cdvdman_irx
+	$(BIN2S) modules/iopcore/cdvdman/smb_cdvdman.irx asm/smb_cdvdman.s smb_cdvdman_irx
 
 hdd_cdvdman.s:
 	echo "    * hdd_cdvdman.irx"
 	$(MAKE) $(VMC_FLAGS) $(CDVDMAN_DEBUG_FLAGS) -C modules/iopcore/cdvdman -f Makefile.hdd rebuild
-	$(BIN2S) modules/iopcore/cdvdman/cdvdman.irx asm/hdd_cdvdman.s hdd_cdvdman_irx
+	$(BIN2S) modules/iopcore/cdvdman/hdd_cdvdman.irx asm/hdd_cdvdman.s hdd_cdvdman_irx
 
 hdd_hdpro_cdvdman.s:
 	echo "    * hdd_hdpro_cdvdman.irx"
 	$(MAKE) $(VMC_FLAGS) $(CDVDMAN_DEBUG_FLAGS) -C modules/iopcore/cdvdman -f Makefile.hdd.hdpro rebuild
-	$(BIN2S) modules/iopcore/cdvdman/cdvdman.irx asm/hdd_hdpro_cdvdman.s hdd_hdpro_cdvdman_irx
+	$(BIN2S) modules/iopcore/cdvdman/hdd_hdpro_cdvdman.irx asm/hdd_hdpro_cdvdman.s hdd_hdpro_cdvdman_irx
 
 cdvdfsv.s:
 	echo "    * cdvdfsv.irx"
@@ -340,17 +340,17 @@ cdvdfsv.s:
 usb_mcemu.s:
 	echo "    * usb_mcemu.irx"
 	$(MAKE) $(MCEMU_DEBUG_FLAGS) -C modules/mcemu -f Makefile.usb rebuild
-	$(BIN2S) modules/mcemu/mcemu.irx asm/usb_mcemu.s usb_mcemu_irx
+	$(BIN2S) modules/mcemu/usb_mcemu.irx asm/usb_mcemu.s usb_mcemu_irx
 
 hdd_mcemu.s:
 	echo "    * hdd_mcemu.irx"
 	$(MAKE) $(MCEMU_DEBUG_FLAGS) -C modules/mcemu -f Makefile.hdd rebuild
-	$(BIN2S) modules/mcemu/mcemu.irx asm/hdd_mcemu.s hdd_mcemu_irx
+	$(BIN2S) modules/mcemu/hdd_mcemu.irx asm/hdd_mcemu.s hdd_mcemu_irx
 
 smb_mcemu.s:
 	echo "    * smb_mcemu.irx"
 	$(MAKE) $(MCEMU_DEBUG_FLAGS) -C modules/mcemu -f Makefile.smb rebuild
-	$(BIN2S) modules/mcemu/mcemu.irx asm/smb_mcemu.s smb_mcemu_irx
+	$(BIN2S) modules/mcemu/smb_mcemu.irx asm/smb_mcemu.s smb_mcemu_irx
 
 isofs.s:
 	echo "    * isofs.irx"

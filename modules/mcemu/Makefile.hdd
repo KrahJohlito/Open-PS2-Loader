@@ -8,7 +8,7 @@
 #
 # $Id: Makefile 1 2007-05-08 16:56:27Z polo $
 
-IOP_BIN  = mcemu.irx
+IOP_BIN  = hdd_mcemu.irx
 IOP_OBJS = mcemu.o mcemu_io.o mcemu_sys.o mcemu_var.o mcemu_rpc.o device-hdd.o imports.o
 
 ifeq ($(IOPCORE_DEBUG),1)
