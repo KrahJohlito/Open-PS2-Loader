@@ -662,3 +662,7 @@ gui_strings:
   string: OSD Language
 - label: ENABLE_LNG
   string: Change language
+- label: BGM
+  string: Background Music
+- label: BGM_VOLUME
+  string: Background Music Volume

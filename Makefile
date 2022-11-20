@@ -93,7 +93,7 @@ PNG_ASSETS = load0 load1 load2 load3 load4 load5 load6 load7 usb usb_bd ilk_bd \
 
 GFX_OBJS = $(PNG_ASSETS:%=%_png.o) poeveticanew.o icon_sys.o icon_icn.o
 
-AUDIO_OBJS =	boot.o cancel.o confirm.o cursor.o message.o transition.o
+AUDIO_OBJS =	boot.o cancel.o confirm.o cursor.o message.o transition.o bgm.o
 
 MISC_OBJS =	icon_sys_A.o icon_sys_J.o icon_sys_C.o conf_theme_OPL.o
 
@@ -699,6 +699,9 @@ $(EE_ASM_DIR)message.s: audio/message.adp | $(EE_ASM_DIR)
 
 $(EE_ASM_DIR)transition.s: audio/transition.adp | $(EE_ASM_DIR)
 	$(BIN2S) $< $@ transition_adp
+
+$(EE_ASM_DIR)bgm.s: audio/bgm.wav | $(EE_ASM_DIR)
+	$(BIN2S) $< $@ bgm_wav
 
 $(EE_ASM_DIR)IOPRP_img.s: modules/iopcore/IOPRP.img | $(EE_ASM_DIR)
 	$(BIN2S) $< $@ IOPRP_img
