@@ -5,17 +5,10 @@
  */
 
 #include <audsrv.h>
-#include <vorbis/vorbisfile.h>
-
 #include "include/sound.h"
 #include "include/opl.h"
 #include "include/ioman.h"
 #include "include/themes.h"
-
-// Silence unused variable warnings from vorbisfile.h
-static ov_callbacks OV_CALLBACKS_NOCLOSE __attribute__((unused));
-static ov_callbacks OV_CALLBACKS_STREAMONLY __attribute__((unused));
-static ov_callbacks OV_CALLBACKS_STREAMONLY_NOCLOSE __attribute__((unused));
 
 /*--    Theme Sound Effects    ----------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------*/
@@ -239,17 +232,27 @@ void sfxPlay(int id)
 
 extern void *_gp;
 
+struct bgm_t
+{
+    FILE *file;
+
+    int channels;
+    int bits;
+    int freq;
+};
+
 static int bgmThreadID, bgmIoThreadID;
 static int outSema, inSema;
 static unsigned char terminateFlag, bgmIsPlaying;
 static unsigned char rdPtr, wrPtr;
 static char bgmBuffer[BGM_RING_BUFFER_COUNT][BGM_RING_BUFFER_SIZE];
+static unsigned short int bgmBufferSizes[BGM_RING_BUFFER_COUNT];
 static volatile unsigned char bgmThreadRunning, bgmIoThreadRunning;
 
 static u8 bgmThreadStack[BGM_THREAD_STACK_SIZE] __attribute__((aligned(16)));
 static u8 bgmIoThreadStack[BGM_THREAD_STACK_SIZE] __attribute__((aligned(16)));
 
-static OggVorbis_File *vorbisFile;
+static struct bgm_t bgm;
 
 static void bgmThread(void *arg)
 {
@@ -259,8 +262,8 @@ static void bgmThread(void *arg)
         SleepThread();
 
         while (PollSema(outSema) == outSema) {
-            audsrv_wait_audio(BGM_RING_BUFFER_SIZE);
-            audsrv_play_audio(bgmBuffer[rdPtr], BGM_RING_BUFFER_SIZE);
+            audsrv_wait_audio(bgmBufferSizes[rdPtr]);
+            audsrv_play_audio(bgmBuffer[rdPtr], bgmBufferSizes[rdPtr]);
             rdPtr = (rdPtr + 1) % BGM_RING_BUFFER_COUNT;
 
             SignalSema(inSema);
@@ -268,6 +271,9 @@ static void bgmThread(void *arg)
     }
 
     audsrv_stop_audio();
+
+    if (bgm.file != NULL)
+        fclose(bgm.file);
 
     rdPtr = 0;
     wrPtr = 0;
@@ -278,35 +284,41 @@ static void bgmThread(void *arg)
 
 static void bgmIoThread(void *arg)
 {
-    int partsToRead, decodeTotal, bitStream, i;
+    int sizeToRead, sizeToReadTotal, partsToRead, remaining, i;
 
     bgmIoThreadRunning = 1;
     do {
-        WaitSema(inSema);
-        partsToRead = 1;
+        fseek(bgm.file, 0, SEEK_END);
+        remaining = ftell(bgm.file);
+        rewind(bgm.file);
 
-        while ((wrPtr + partsToRead < BGM_RING_BUFFER_COUNT) && (PollSema(inSema) == inSema))
-            partsToRead++;
+        while (remaining > 0 && !terminateFlag && gEnableBGM) {
+            WaitSema(inSema);
+            sizeToRead = remaining > BGM_RING_BUFFER_SIZE ? BGM_RING_BUFFER_SIZE : remaining;
+            bgmBufferSizes[wrPtr] = sizeToRead;
+            sizeToReadTotal = sizeToRead;
+            partsToRead = 1;
 
-        decodeTotal = BGM_RING_BUFFER_SIZE;
-        int bufferPtr = 0;
-        do {
-            int ret = ov_read(vorbisFile, bgmBuffer[wrPtr] + bufferPtr, decodeTotal, 0, 2, 1, &bitStream);
-            if (ret > 0) {
-                bufferPtr += ret;
-                decodeTotal -= ret;
-            } else if (ret < 0) {
-                LOG("BGM: I/O error while reading.\n");
-                terminateFlag = 1;
-                break;
-            } else if (ret == 0)
-                ov_pcm_seek(vorbisFile, 0);
-        } while (decodeTotal > 0);
+            // Determine the maximum amount of bytes that can be read, taking care of the wraparound at the end of the ring buffer. Since most PS2 peripherals do better at reading large blocks.
+            while ((wrPtr + partsToRead < BGM_RING_BUFFER_COUNT) && (remaining - sizeToReadTotal > 0) && (PollSema(inSema) == inSema)) {
+                sizeToRead = remaining - sizeToReadTotal > BGM_RING_BUFFER_SIZE ? BGM_RING_BUFFER_SIZE : remaining - sizeToReadTotal;
+                sizeToReadTotal += sizeToRead;
+                bgmBufferSizes[wrPtr + partsToRead] = sizeToRead;
+                partsToRead++;
+            }
 
-        wrPtr = (wrPtr + partsToRead) % BGM_RING_BUFFER_COUNT;
-        for (i = 0; i < partsToRead; i++)
-            SignalSema(outSema);
-        WakeupThread(bgmThreadID);
+            if ((fread(bgmBuffer[wrPtr], 1, sizeToReadTotal, bgm.file)) != sizeToReadTotal) {
+                printf("BGM: I/O error while reading.\n");
+                bgmIoThreadRunning = 0;
+                return;
+            }
+
+            wrPtr = (wrPtr + partsToRead) % BGM_RING_BUFFER_COUNT;
+            remaining -= sizeToReadTotal;
+            for (i = 0; i < partsToRead; i++)
+                SignalSema(outSema);
+            WakeupThread(bgmThreadID);
+        }
     } while (!terminateFlag && gEnableBGM);
 
     bgmIoThreadRunning = 0;
@@ -316,29 +328,32 @@ static void bgmIoThread(void *arg)
 
 static int bgmLoad(void)
 {
-    FILE *bgmFile;
     char bgmPath[256];
-
-    vorbisFile = malloc(sizeof(OggVorbis_File));
-    memset(vorbisFile, 0, sizeof(OggVorbis_File));
 
     int themeID = thmGetGuiValue();
     if (themeID != 0) {
         char *thmPath = thmGetFilePath(themeID);
-        snprintf(bgmPath, sizeof(bgmPath), "%ssound/bgm.ogg", thmPath);
+        snprintf(bgmPath, sizeof(bgmPath), "%ssound/bgm.wav", thmPath);
     } else
         snprintf(bgmPath, sizeof(bgmPath), gDefaultBGMPath);
 
-    bgmFile = fopen(bgmPath, "rb");
-    if (bgmFile == NULL) {
-        LOG("BGM: Failed to open Ogg file %s\n", bgmPath);
+    bgm.file = fopen(bgmPath, "rb");
+    if (bgm.file == NULL) {
+        LOG("BGM: Failed to open wave file %s\n", bgmPath);
         return -ENOENT;
     }
 
-    if (ov_open_callbacks(bgmFile, vorbisFile, NULL, 0, OV_CALLBACKS_DEFAULT) < 0) {
-        LOG("BGM: Input does not appear to be an Ogg bitstream.\n");
-        return -ENOENT;
-    }
+    fseek(bgm.file, 22, SEEK_SET);
+    fread(&bgm.channels, 2, 1, bgm.file);
+    rewind(bgm.file);
+
+    fseek(bgm.file, 24, SEEK_SET);
+    fread(&bgm.freq, 4, 1, bgm.file);
+    rewind(bgm.file);
+
+    fseek(bgm.file, 34, SEEK_SET);
+    fread(&bgm.bits, 2, 1, bgm.file);
+    rewind(bgm.file);
 
     return 0;
 }
@@ -420,11 +435,6 @@ static void bgmDeinit(void)
     DeleteSema(outSema);
     DeleteThread(bgmThreadID);
     DeleteThread(bgmIoThreadID);
-
-    // Vorbisfile takes care of fclose.
-    ov_clear(vorbisFile);
-    free(vorbisFile);
-    vorbisFile = NULL;
 }
 
 static void bgmShutdownDelayCallback(s32 alarm_id, u16 time, void *common)
@@ -448,12 +458,9 @@ void bgmStart(void)
             return;
         }
 
-        vorbis_info *vi = ov_info(vorbisFile, -1);
-        ov_pcm_seek(vorbisFile, 0);
-
-        audsrvFmt.channels = vi->channels;
-        audsrvFmt.freq = vi->rate;
-        audsrvFmt.bits = 16;
+        audsrvFmt.freq = bgm.freq;
+        audsrvFmt.bits = bgm.bits;
+        audsrvFmt.channels = bgm.channels;
 
         audsrv_set_format(&audsrvFmt);
 
