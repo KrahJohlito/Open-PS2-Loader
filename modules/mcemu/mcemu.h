@@ -23,6 +23,8 @@
 #include "mcemu_utils.h"
 #include "device.h"
 
+#define U64_2XU32(val) ((u32 *)val)[1], ((u32 *)val)[0]
+
 #define MODNAME "mcemu"
 
 // debug output is handled elsewhere
@@ -105,7 +107,7 @@ typedef struct _McImageSpec
     int active; /* Activation flag */
 
 #ifdef BDM_DRIVER
-    u32 stsec; /* Vmc file start sector */
+    u64 stsec; /* Vmc file start sector */
 #endif
 
 #ifdef HDD_DRIVER

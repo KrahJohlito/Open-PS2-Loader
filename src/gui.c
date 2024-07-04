@@ -215,6 +215,9 @@ void guiShowAbout()
 #ifdef PADEMU
                                                        " - PADEMU"
 #endif
+#ifdef ATA_UDMA_PLUS
+                                                       " - UDMA+"
+#endif
              // Version numbers
              ,
              GSM_VERSION
@@ -441,11 +444,13 @@ static void guiShowBlockDeviceConfig(void)
 
     diaSetInt(diaBlockDevicesConfig, CFG_ENABLEILK, gEnableILK);
     diaSetInt(diaBlockDevicesConfig, CFG_ENABLEMX4SIO, gEnableMX4SIO);
+    diaSetInt(diaBlockDevicesConfig, CFG_ENABLEBDMHDD, gEnableBdmHDD);
 
     ret = diaExecuteDialog(diaBlockDevicesConfig, -1, 1, NULL);
     if (ret) {
         diaGetInt(diaBlockDevicesConfig, CFG_ENABLEILK, &gEnableILK);
         diaGetInt(diaBlockDevicesConfig, CFG_ENABLEMX4SIO, &gEnableMX4SIO);
+        diaGetInt(diaBlockDevicesConfig, CFG_ENABLEBDMHDD, &gEnableBdmHDD);
     }
 }
 
@@ -462,6 +467,39 @@ static int guiUpdater(int modified)
         diaSetVisible(diaConfig, BLOCKDEVICE_BUTTON, gBDMStartMode);
     }
     return 0;
+}
+
+int guiDeviceTypeToIoMode(int deviceType)
+{
+    // Translates an index into deviceNames into an IO mode index used internally.
+    if (deviceType == 0)
+        return BDM_MODE;
+    else if (deviceType == 1)
+        return ETH_MODE;
+    else if (deviceType == 2)
+        return HDD_MODE;
+    else
+        return APP_MODE;
+}
+
+int guiIoModeToDeviceType(int ioMode)
+{
+    switch (ioMode) {
+        case BDM_MODE:
+        case BDM_MODE1:
+        case BDM_MODE2:
+        case BDM_MODE3:
+        case BDM_MODE4:
+            return 0;
+        case ETH_MODE:
+            return 1;
+        case HDD_MODE:
+            return 2;
+        case APP_MODE:
+            return 3;
+        default:
+            return 0;
+    }
 }
 
 void guiShowConfig()
@@ -493,7 +531,8 @@ void guiShowConfig()
     diaSetVisible(diaConfig, CFG_AUTOSTARTLAST, gRememberLastPlayed);
     diaSetVisible(diaConfig, CFG_LBL_AUTOSTARTLAST, gRememberLastPlayed);
 
-    diaSetInt(diaConfig, CFG_DEFDEVICE, gDefaultDevice);
+    int deviceModeIndex = guiIoModeToDeviceType(gDefaultDevice);
+    diaSetInt(diaConfig, CFG_DEFDEVICE, deviceModeIndex);
     diaSetInt(diaConfig, CFG_BDMMODE, gBDMStartMode);
     diaSetVisible(diaConfig, BLOCKDEVICE_BUTTON, gBDMStartMode);
     diaSetInt(diaConfig, CFG_HDDMODE, gHDDStartMode);
@@ -513,7 +552,8 @@ void guiShowConfig()
         diaGetInt(diaConfig, CFG_LASTPLAYED, &gRememberLastPlayed);
         diaGetInt(diaConfig, CFG_AUTOSTARTLAST, &gAutoStartLastPlayed);
         DisableCron = 1; // Disable Auto Start Last Played counter (we don't want to call it right after enable it on GUI)
-        diaGetInt(diaConfig, CFG_DEFDEVICE, &gDefaultDevice);
+        diaGetInt(diaConfig, CFG_DEFDEVICE, &deviceModeIndex);
+        gDefaultDevice = guiDeviceTypeToIoMode(deviceModeIndex);
         diaGetInt(diaConfig, CFG_HDDMODE, &gHDDStartMode);
         diaGetInt(diaConfig, CFG_ETHMODE, &gETHStartMode);
         diaGetInt(diaConfig, CFG_APPMODE, &gAPPStartMode);
@@ -524,7 +564,7 @@ void guiShowConfig()
         if (ret == BLOCKDEVICE_BUTTON)
             guiShowBlockDeviceConfig();
 
-        applyConfig(-1, -1);
+        applyConfig(-1, -1, 0);
         menuReinitMainMenu();
     }
 }
@@ -669,7 +709,7 @@ reselect_video_mode:
         if (previousTheme != themeID && isBgmPlaying())
             bgmStop();
 
-        applyConfig(themeID, langID);
+        applyConfig(themeID, langID, 1);
         sfxInit(0);
 
         if (gEnableBGM && !isBgmPlaying())
@@ -680,7 +720,7 @@ reselect_video_mode:
         if (guiConfirmVideoMode() == 0) {
             // Restore previous video mode, without changing the theme & language settings.
             gVMode = previousVMode;
-            applyConfig(themeID, langID);
+            applyConfig(themeID, langID, 1);
             goto reselect_video_mode;
         }
     }
@@ -796,7 +836,7 @@ void guiShowNetConfig(void)
         if (result == NETCFG_RECONNECT && gNetworkStartup < ERROR_ETH_SMB_CONN)
             gNetworkStartup = ERROR_ETH_SMB_LOGON;
 
-        applyConfig(-1, -1);
+        applyConfig(-1, -1, 0);
     }
 }
 
@@ -898,7 +938,7 @@ void guiShowControllerConfig(void)
             guiGameShowPadMacroConfig(1);
         }
 #endif
-        applyConfig(-1, -1);
+        applyConfig(-1, -1, 1);
     }
 }
 
@@ -1555,12 +1595,11 @@ void guiSetFrameHook(gui_callback_t cback)
 void guiSwitchScreen(int target)
 {
     // Only initiate the transition once or else we could get stuck in an infinite loop.
-    if (screenHandlerTarget != NULL) {
-        return;
+    if (screenHandlerTarget == NULL) {
+        sfxPlay(SFX_TRANSITION);
+        transIndex = 0;
+        screenHandlerTarget = &screenHandlers[target];
     }
-    sfxPlay(SFX_TRANSITION);
-    transIndex = 0;
-    screenHandlerTarget = &screenHandlers[target];
 }
 
 struct gui_update_t *guiOpCreate(gui_op_type_t type)

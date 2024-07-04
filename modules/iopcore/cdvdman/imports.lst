@@ -23,6 +23,10 @@ intrman_IMPORTS_end
 sysmem_IMPORTS_start
 I_Kprintf
 I_AllocSysMemory
+#ifdef __IOPCORE_DEBUG
+I_QueryTotalFreeMemSize
+I_QueryMemSize
+#endif
 sysmem_IMPORTS_end
 
 loadcore_IMPORTS_start
@@ -43,6 +47,7 @@ I_strstr
 I_strncpy
 I_sprintf
 I_memcpy
+I_memset
 sysclib_IMPORTS_end
 
 thsemap_IMPORTS_start

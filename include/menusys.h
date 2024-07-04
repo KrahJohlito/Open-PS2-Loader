@@ -51,6 +51,9 @@ typedef struct menu_item
     /// item description in localised form (used if value is not negative)
     int text_id;
 
+    // Indicates if the menu item should be drawn or not.
+    int visible;
+
     void *userdata;
 
     /// submenu, selection and page start (only used in static mode)
@@ -86,6 +89,7 @@ void menuInitGameMenu(void);
 void menuInitAppMenu(void);
 
 void menuAppendItem(menu_item_t *item);
+void refreshMenuPosition();
 
 void submenuRebuildCache(submenu_list_t *submenu);
 submenu_list_t *submenuAppendItem(submenu_list_t **submenu, int icon_id, char *text, int id, int text_id);

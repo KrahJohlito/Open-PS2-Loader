@@ -13,6 +13,10 @@
 
 #include <elf-loader.h>
 
+#ifdef CATCH_EXCEPTIONS
+#include "include/exceptions.h"
+#endif
+
 static int appForceUpdate = 1;
 static int appItemCount = 0;
 
@@ -97,7 +101,7 @@ static char *appGetBoot(char *device, int max, char *path)
     return path;
 }
 
-void appInit(void)
+void appInit(item_list_t *pItemList)
 {
     LOG("APPSUPPORT Init\n");
     appForceUpdate = 1;
@@ -114,7 +118,7 @@ item_list_t *appGetObject(int initOnly)
     return &appItemList;
 }
 
-static int appNeedsUpdate(void)
+static int appNeedsUpdate(item_list_t *pItemList)
 {
     int update;
 
@@ -238,7 +242,7 @@ static int appScanCallback(const char *path, config_set_t *appConfig, void *arg)
     return -1;
 }
 
-static int appUpdateItemList(void)
+static int appUpdateItemList(item_list_t *pItemList)
 {
     struct app_info_linked *appsLinkedList, *appNext;
 
@@ -284,24 +288,24 @@ static void appFreeList(void)
     }
 }
 
-static int appGetItemCount(void)
+static int appGetItemCount(item_list_t *pItemList)
 {
     return appItemCount;
 }
 
-static char *appGetItemName(int id)
+static char *appGetItemName(item_list_t *pItemList, int id)
 {
     return appsList[id].title;
 }
 
-static int appGetItemNameLength(int id)
+static int appGetItemNameLength(item_list_t *pItemList, int id)
 {
     return CONFIG_KEY_NAME_LEN;
 }
 
 /* appGetItemStartup() is called to get the startup path for display & for the art assets.
    The path is used immediately, before a subsequent call to appGetItemStartup(). */
-static char *appGetItemStartup(int id)
+static char *appGetItemStartup(item_list_t *pItemList, int id)
 {
     if (appsList[id].legacy) {
         struct config_value_t *cur = appGetConfigValue(id);
@@ -311,7 +315,7 @@ static char *appGetItemStartup(int id)
     }
 }
 
-static void appDeleteItem(int id)
+static void appDeleteItem(item_list_t *pItemList, int id)
 {
     if (appsList[id].legacy) {
         struct config_value_t *cur = appGetConfigValue(id);
@@ -326,7 +330,7 @@ static void appDeleteItem(int id)
     appForceUpdate = 1;
 }
 
-static void appRenameItem(int id, char *newName)
+static void appRenameItem(item_list_t *pItemList, int id, char *newName)
 {
     char value[256];
 
@@ -355,7 +359,7 @@ static void appRenameItem(int id, char *newName)
     appForceUpdate = 1;
 }
 
-static void appLaunchItem(int id, config_set_t *configSet)
+static void appLaunchItem(item_list_t *pItemList, int id, config_set_t *configSet)
 {
     int fd;
     const char *filename;
@@ -389,12 +393,18 @@ static void appLaunchItem(int id, config_set_t *configSet)
         }
 
         deinit(UNMOUNT_EXCEPTION, mode); // CAREFUL: deinit will call appCleanUp, so configApps/cur will be freed
+
+#ifdef CATCH_EXCEPTIONS
+        // Uninstall debug exception handlers.
+        restoreExceptionHandlers();
+#endif
+
         LoadELFFromFileWithPartition(filename, partition, argc, argv);
     } else
         guiMsgBox(_l(_STR_ERR_FILE_INVALID), 0, NULL);
 }
 
-static config_set_t *appGetConfig(int id)
+static config_set_t *appGetConfig(item_list_t *pItemList, int id)
 {
     config_set_t *config;
     char tmp[8];
@@ -433,7 +443,7 @@ static config_set_t *appGetConfig(int id)
     return config;
 }
 
-static int appGetImage(char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
+static int appGetImage(item_list_t *pItemList, char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
 {
     char device[8], *startup;
 
@@ -445,18 +455,18 @@ static int appGetImage(char *folder, int isRelative, char *value, char *suffix, 
         return oplGetAppImage(device, folder, isRelative, value, suffix, resultTex, psm);
 }
 
-static int appGetTextId(void)
+static int appGetTextId(item_list_t *pItemList)
 {
     return _STR_APPS;
 }
 
-static int appGetIconId(void)
+static int appGetIconId(item_list_t *pItemList)
 {
     return APP_ICON;
 }
 
 // This may be called, even if appInit() was not.
-static void appCleanUp(int exception)
+static void appCleanUp(item_list_t *pItemList, int exception)
 {
     if (appItemList.enabled) {
         LOG("APPSUPPORT CleanUp\n");
@@ -466,7 +476,7 @@ static void appCleanUp(int exception)
 }
 
 // This may be called, even if appInit() was not.
-static void appShutdown(void)
+static void appShutdown(item_list_t *pItemList)
 {
     if (appItemList.enabled) {
         LOG("APPSUPPORT Shutdown\n");
@@ -476,6 +486,6 @@ static void appShutdown(void)
 }
 
 static item_list_t appItemList = {
-    APP_MODE, -1, 0, MODE_FLAG_NO_COMPAT | MODE_FLAG_NO_UPDATE, MENU_MIN_INACTIVE_FRAMES, APP_MODE_UPDATE_DELAY, &appGetTextId, NULL, &appInit, &appNeedsUpdate, &appUpdateItemList,
+    APP_MODE, -1, 0, MODE_FLAG_NO_COMPAT | MODE_FLAG_NO_UPDATE, MENU_MIN_INACTIVE_FRAMES, APP_MODE_UPDATE_DELAY, NULL, NULL, &appGetTextId, NULL, &appInit, &appNeedsUpdate, &appUpdateItemList,
     &appGetItemCount, NULL, &appGetItemName, &appGetItemNameLength, &appGetItemStartup, &appDeleteItem, &appRenameItem, &appLaunchItem,
     &appGetConfig, &appGetImage, &appCleanUp, &appShutdown, NULL, &appGetIconId};

@@ -28,6 +28,10 @@
 #include "include/cheatman.h"
 #include "include/xparam.h"
 
+#ifdef CATCH_EXCEPTIONS
+#include "include/exceptions.h"
+#endif
+
 #ifdef PADEMU
 #include <libds34bt.h>
 #include <libds34usb.h>
@@ -56,7 +60,7 @@ extern unsigned int size_eesync_irx;
 
 #define MAX_MODULES 64
 static void *g_sysLoadedModBuffer[MAX_MODULES];
-static s32 sysLoadModuleLock = -1;
+static s32 sysLoadModuleLock;
 
 #define ELF_MAGIC   0x464c457f
 #define ELF_PT_LOAD 1
@@ -220,9 +224,11 @@ void sysReset(int modload_mask)
     sbv_patch_enable_lmb();
     sbv_patch_disable_prefix_check();
 
-    if (sysLoadModuleLock < 0) {
-        sysLoadModuleLock = sbCreateSemaphore();
-    }
+    ee_sema_t semaphore;
+    semaphore.init_count = 1;
+    semaphore.max_count = 1;
+    semaphore.option = 0;
+    sysLoadModuleLock = CreateSema(&semaphore);
 
     // clears modules list
     memset((void *)&g_sysLoadedModBuffer[0], 0, MAX_MODULES * 4);
@@ -295,6 +301,12 @@ static void poweroffHandler(void *arg)
 void sysPowerOff(void)
 {
     deinit(NO_EXCEPTION, IO_MODE_SELECTED_NONE);
+
+#ifdef CATCH_EXCEPTIONS
+    // Uninstall debug exception handlers.
+    restoreExceptionHandlers();
+#endif
+
     poweroffShutdown();
 }
 
@@ -379,6 +391,12 @@ void sysExecExit(void)
 {
     // Deinitialize without shutting down active devices.
     deinit(NO_EXCEPTION, IO_MODE_SELECTED_ALL);
+
+#ifdef CATCH_EXCEPTIONS
+    // Uninstall debug exception handlers.
+    restoreExceptionHandlers();
+#endif
+
     Exit(0);
 }
 
@@ -392,6 +410,7 @@ void sysExecExit(void)
 #define CORE_IRX_DECI2  0x40
 #define CORE_IRX_ILINK  0x80
 #define CORE_IRX_MX4SIO 0x100
+#define CORE_IRX_BDM    0x200
 
 typedef struct
 {
@@ -475,6 +494,8 @@ static unsigned int sendIrxKernelRAM(const char *startup, const char *mode_str, 
         modules |= CORE_IRX_MX4SIO;
     else if (!strcmp(mode_str, "ETH_MODE"))
         modules |= CORE_IRX_ETH | CORE_IRX_SMB;
+    else if (!strcmp(mode_str, "BDM_MASS_ATA_MODE"))
+        modules |= CORE_IRX_BDM | CORE_IRX_HDD;
     else
         modules |= CORE_IRX_HDD;
 
@@ -979,6 +1000,11 @@ void sysLaunchLoaderElf(const char *filename, const char *mode_str, int size_cdv
     // Let's go.
     fileXioExit();
     SifExitRpc();
+
+#ifdef CATCH_EXCEPTIONS
+    // Uninstall debug exception handlers.
+    restoreExceptionHandlers();
+#endif
 
     FlushCache(0);
     FlushCache(2);

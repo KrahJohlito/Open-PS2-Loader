@@ -29,7 +29,8 @@ extern u8 IOBuffer[2048];
 
 static unsigned char hddForceUpdate = 0;
 static unsigned char hddHDProKitDetected = 0;
-static unsigned char hddModulesLoaded = 0;
+static unsigned char hddModulesLoadCount = 0;
+static unsigned char hddSupportModulesLoaded = 0;
 
 static char *hddPrefix = "pfs0:";
 static hdl_games_list_t hddGames;
@@ -42,7 +43,10 @@ static int hddUpdateGameListCache(hdl_games_list_t *cache, hdl_games_list_t *gam
 
 static void hddInitModules(void)
 {
+    LOG("hddInitModules\n");
+
     hddLoadModules();
+    hddLoadSupportModules();
 
     // update Themes
     char path[256];
@@ -175,26 +179,13 @@ static int hddCreateOPLPartition(const char *name)
 void hddLoadModules(void)
 {
     int ret;
-    static char hddarg[] = "-o"
-                           "\0"
-                           "4"
-                           "\0"
-                           "-n"
-                           "\0"
-                           "20";
 
-    static char pfsarg[] = "\0"
-                           "-o" // max open
-                           "\0"
-                           "10" // Default value: 2
-                           "\0"
-                           "-n" // Number of buffers
-                           "\0"
-                           "40"; // Default value: 8 | Max value: 127
-    LOG("HDDSUPPORT LoadModules\n");
+    LOG("HDDSUPPORT LoadModules %d\n", hddModulesLoadCount);
 
-    if (!hddModulesLoaded) {
-        hddModulesLoaded = 1;
+    if (hddModulesLoadCount == 0) {
+        // Increment the load count as soon as possible to prevent thread scheduling from allowing another thread to
+        // call into here and try to double load modules.
+        hddModulesLoadCount = 1;
 
         // DEV9 must be loaded, as HDD.IRX depends on it. Even if not required by the I/F (i.e. HDPro)
         sysInitDev9();
@@ -213,14 +204,96 @@ void hddLoadModules(void)
             LOG("[XHDD]:\n");
             sysLoadModuleBuffer(&xhdd_irx, size_xhdd_irx, 0, NULL);
         }
+
         if (ret < 0) {
             LOG("HDD: No HardDisk Drive detected.\n");
             setErrorMessageWithCode(_STR_HDD_NOT_CONNECTED_ERROR, ERROR_HDD_IF_NOT_DETECTED);
             return;
         }
+    } else
+        hddModulesLoadCount++;
 
-        LOG("[HDD]:\n");
-        ret = sysLoadModuleBuffer(&ps2hdd_irx, size_ps2hdd_irx, sizeof(hddarg), hddarg);
+    LOG("HDDSUPPORT LoadModules done\n");
+}
+
+// Returns 1 for MBR/GPT, 0 for APA, and -1 if an error occured
+int hddDetectNonSonyFileSystem()
+{
+    int result = -1;
+
+    // Allocate memory for storing data for the first two sectors.
+    u8 *pSectorData = (u8 *)malloc(512 * 2);
+    if (pSectorData == NULL) {
+        LOG("hddDetectNonSonyFileSystem: failed to allocate scratch memory\n");
+        return -1;
+    }
+
+    // Trying to load the APA/PFS irx modules when a non-sony formatted HDD is connected (ie: MBR/GPT  w/ exFAT) runs
+    // the risk of corrupting the HDD. To avoid that get the first two sectors and perform some sanity checks. If
+    // we reasonably suspect the disk is not APA formatted bail out from loading the sony fs irx modules.
+    result = fileXioDevctl("xhdd0:", ATA_DEVCTL_READ_PARTITION_SECTOR, NULL, 0, pSectorData, 512 * 2);
+    if (result < 0) {
+        LOG("hddDetectNonSonyFileSystem: failed to read data from hdd %d\n", result);
+        free(pSectorData);
+        return -1;
+    }
+
+    // Check for MBR signature.
+    if (pSectorData[0x1FE] == 0x55 && pSectorData[0x1FF] == 0xAA) {
+        // Found MBR partition type.
+        LOG("hddDetectNonSonyFileSystem: found MBR partition data\n");
+        result = 1;
+    } else if (strncmp((const char *)&pSectorData[0x200], "EFI PART", 8) == 0) {
+        // Found GPT partition type.
+        LOG("hddDetectNonSonyFileSystem: found GPT partition data\n");
+        result = 1;
+    } else if (strncmp((const char *)&pSectorData[4], "APA", 3) == 0) {
+        // Found APA partition type.
+        LOG("hddDetectNonSonyFileSystem: found APA partition data\n");
+        result = 0;
+    } else {
+        // Even though we didn't find evidence of non-APA partition data, if we load the APA irx module
+        // it will write to the drive and potentially corrupt any data that might be there.
+        LOG("hddDetectNonSonyFileSystem: partition data not recognized\n");
+        result = -1;
+    }
+
+    // Cleanup and return.
+    free(pSectorData);
+    return result;
+}
+
+void hddLoadSupportModules()
+{
+    static char hddarg[] = "-o"
+                           "\0"
+                           "4"
+                           "\0"
+                           "-n"
+                           "\0"
+                           "20";
+
+    static char pfsarg[] = "\0"
+                           "-o" // max open
+                           "\0"
+                           "10" // Default value: 2
+                           "\0"
+                           "-n" // Number of buffers
+                           "\0"
+                           "40"; // Default value: 8 | Max value: 127
+
+    LOG("HDDSUPPORT LoadSupportModules\n");
+
+    // Check if the drive contains MBR/GPT partition data before we load the APA/PFS modules. If the drive is not
+    // APA then loading the APA irx modules can corrupt the drive as it will try to write APA partition data.
+    if (hddDetectNonSonyFileSystem() != 0) {
+        // Drive is MBR/GPT style, or unknown, bail out or risk corrupting the drive.
+        LOG("HDDSUPPORT LoadSupportModules bailing out early...\n");
+        return;
+    }
+
+    if (!hddSupportModulesLoaded) {
+        int ret = sysLoadModuleBuffer(&ps2hdd_irx, size_ps2hdd_irx, sizeof(hddarg), hddarg);
         if (ret < 0) {
             LOG("HDD: No HardDisk Drive detected.\n");
             setErrorMessageWithCode(_STR_HDD_NOT_CONNECTED_ERROR, ERROR_HDD_MODULE_HDD_FAILURE);
@@ -263,7 +336,7 @@ void hddLoadModules(void)
     }
 }
 
-void hddInit(void)
+void hddInit(item_list_t *pItemList)
 {
     LOG("HDDSUPPORT Init\n");
     hddForceUpdate = 0; // Use cache at initial startup.
@@ -274,18 +347,21 @@ void hddInit(void)
 
 item_list_t *hddGetObject(int initOnly)
 {
+    if (initOnly)
+        hddLoadModules();
+
     if (initOnly && !hddGameList.enabled)
         return NULL;
     return &hddGameList;
 }
 
-static int hddNeedsUpdate(void)
+static int hddNeedsUpdate(item_list_t *pItemList)
 { /* Auto refresh is disabled by setting HDD_MODE_UPDATE_DELAY to MENU_UPD_DELAY_NOUPDATE, within hddsupport.h.
        Hence any update request would be issued by the user, which should be taken as an explicit request to re-scan the HDD. */
     return 1;
 }
 
-static int hddUpdateGameList(void)
+static int hddUpdateGameList(item_list_t *pItemList)
 {
     hdl_games_list_t hddGamesNew;
     int ret;
@@ -306,38 +382,38 @@ static int hddUpdateGameList(void)
     return (ret == 0 ? hddGames.count : 0);
 }
 
-static int hddGetGameCount(void)
+static int hddGetGameCount(item_list_t *pItemList)
 {
     return hddGames.count;
 }
 
-static void *hddGetGame(int id)
+static void *hddGetGame(item_list_t *pItemList, int id)
 {
     return (void *)&hddGames.games[id];
 }
 
-static char *hddGetGameName(int id)
+static char *hddGetGameName(item_list_t *pItemList, int id)
 {
     return hddGames.games[id].name;
 }
 
-static int hddGetGameNameLength(int id)
+static int hddGetGameNameLength(item_list_t *pItemList, int id)
 {
     return HDL_GAME_NAME_MAX + 1;
 }
 
-static char *hddGetGameStartup(int id)
+static char *hddGetGameStartup(item_list_t *pItemList, int id)
 {
     return hddGames.games[id].startup;
 }
 
-static void hddDeleteGame(int id)
+static void hddDeleteGame(item_list_t *pItemList, int id)
 {
     hddDeleteHDLGame(&hddGames.games[id]);
     hddForceUpdate = 1;
 }
 
-static void hddRenameGame(int id, char *newName)
+static void hddRenameGame(item_list_t *pItemList, int id, char *newName)
 {
     hdl_game_info_t *game = &hddGames.games[id];
     strcpy(game->name, newName);
@@ -345,7 +421,7 @@ static void hddRenameGame(int id, char *newName)
     hddForceUpdate = 1;
 }
 
-void hddLaunchGame(int id, config_set_t *configSet)
+void hddLaunchGame(item_list_t *pItemList, int id, config_set_t *configSet)
 {
     int i, size_irx = 0;
     int EnablePS2Logo = 0;
@@ -536,7 +612,7 @@ void hddLaunchGame(int id, config_set_t *configSet)
     sysLaunchLoaderElf(filename, "HDD_MODE", size_irx, irx, size_mcemu_irx, hdd_mcemu_irx, EnablePS2Logo, compatMode);
 }
 
-static config_set_t *hddGetConfig(int id)
+static config_set_t *hddGetConfig(item_list_t *pItemList, int id)
 {
     char path[256];
     hdl_game_info_t *game = &hddGames.games[id];
@@ -554,7 +630,7 @@ static config_set_t *hddGetConfig(int id)
     return config;
 }
 
-static int hddGetImage(char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
+static int hddGetImage(item_list_t *pItemList, char *folder, int isRelative, char *value, char *suffix, GSTEXTURE *resultTex, short psm)
 {
     char path[256];
     if (isRelative)
@@ -564,18 +640,18 @@ static int hddGetImage(char *folder, int isRelative, char *value, char *suffix, 
     return texDiscoverLoad(resultTex, path, -1);
 }
 
-static int hddGetTextId(void)
+static int hddGetTextId(item_list_t *pItemList)
 {
     return _STR_HDD_GAMES;
 }
 
-static int hddGetIconId(void)
+static int hddGetIconId(item_list_t *pItemList)
 {
     return HDD_ICON;
 }
 
 // This may be called, even if hddInit() was not.
-static void hddCleanUp(int exception)
+static void hddCleanUp(item_list_t *pItemList, int exception)
 {
     LOG("HDDSUPPORT CleanUp\n");
 
@@ -587,20 +663,20 @@ static void hddCleanUp(int exception)
     }
 
     // UI may have loaded modules outside of HDD mode, so deinitialize regardless of the enabled status.
-    if (hddModulesLoaded) {
+    if (hddSupportModulesLoaded) {
         fileXioDevctl("pfs:", PDIOC_CLOSEALL, NULL, 0, NULL, 0);
 
-        hddModulesLoaded = 0;
+        hddSupportModulesLoaded = 0;
     }
 }
 
-static int hddCheckVMC(char *name, int createSize)
+static int hddCheckVMC(item_list_t *pItemList, char *name, int createSize)
 {
     return sysCheckVMC(gHDDPrefix, "/", name, createSize, NULL);
 }
 
 // This may be called, even if hddInit() was not.
-static void hddShutdown(void)
+static void hddShutdown(item_list_t *pItemList)
 {
     LOG("HDDSUPPORT Shutdown\n");
 
@@ -610,18 +686,23 @@ static void hddShutdown(void)
     }
 
     // UI may have loaded modules outside of HDD mode, so deinitialize regardless of the enabled status.
-    if (hddModulesLoaded) {
+    if (hddSupportModulesLoaded) {
         /* Close all files */
         fileXioDevctl("pfs:", PDIOC_CLOSEALL, NULL, 0, NULL, 0);
 
-        // DEV9 will remain active if ETH is in use, so put the HDD in IDLE state.
-        // The HDD should still enter standby state after 21 minutes & 15 seconds, as per the ATAD defaults.
-        hddSetIdleImmediate();
+        hddSupportModulesLoaded = 0;
+    }
+
+    if (hddModulesLoadCount > 0) {
+        hddModulesLoadCount -= 1;
+        if (hddModulesLoadCount == 0) {
+            // DEV9 will remain active if ETH is in use, so put the HDD in IDLE state.
+            // The HDD should still enter standby state after 21 minutes & 15 seconds, as per the ATAD defaults.
+            hddSetIdleImmediate();
+        }
 
         // Only shut down dev9 from here, if it was initialized from here before.
         sysShutdownDev9();
-
-        hddModulesLoaded = 0;
     }
 }
 
@@ -728,12 +809,12 @@ static int hddUpdateGameListCache(hdl_games_list_t *cache, hdl_games_list_t *gam
     return result;
 }
 
-static char *hddGetPrefix(void)
+static char *hddGetPrefix(item_list_t *pItemList)
 {
     return gHDDPrefix;
 }
 
 static item_list_t hddGameList = {
-    HDD_MODE, 0, 0, MODE_FLAG_COMPAT_DMA, MENU_MIN_INACTIVE_FRAMES, HDD_MODE_UPDATE_DELAY, &hddGetTextId, &hddGetPrefix, &hddInit, &hddNeedsUpdate, &hddUpdateGameList,
+    HDD_MODE, 0, 0, MODE_FLAG_COMPAT_DMA, MENU_MIN_INACTIVE_FRAMES, HDD_MODE_UPDATE_DELAY, NULL, NULL, &hddGetTextId, &hddGetPrefix, &hddInit, &hddNeedsUpdate, &hddUpdateGameList,
     &hddGetGameCount, &hddGetGame, &hddGetGameName, &hddGetGameNameLength, &hddGetGameStartup, &hddDeleteGame, &hddRenameGame,
     &hddLaunchGame, &hddGetConfig, &hddGetImage, &hddCleanUp, &hddShutdown, &hddCheckVMC, &hddGetIconId};

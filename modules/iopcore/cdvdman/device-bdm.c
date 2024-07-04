@@ -11,12 +11,25 @@
 
 #include "device.h"
 
+#ifdef USE_BDM_ATA
+#include "atad.h"
+
+char lba_48bit = 0;
+char atad_inited = 0;
+#endif
+
+#define U64_2XU32(val) ((u32 *)val)[1], ((u32 *)val)[0]
+
 extern struct cdvdman_settings_bdm cdvdman_settings;
 static struct block_device *g_bd = NULL;
 static u32 g_bd_sectors_per_sector = 4;
 static int bdm_io_sema;
 
 extern struct irx_export_table _exp_bdm;
+
+#ifdef USE_BDM_ATA
+extern struct irx_export_table _exp_atad;
+#endif
 
 //
 // BDM exported functions
@@ -26,7 +39,9 @@ void bdm_connect_bd(struct block_device *bd)
 {
     DPRINTF("connecting device %s%dp%d\n", bd->name, bd->devNr, bd->parNr);
 
-    if (g_bd == NULL) {
+    if (g_bd == NULL && bd->devNr == cdvdman_settings.bdDeviceId) {
+        DPRINTF("attaching to %s%dp%d\n", bd->name, bd->devNr, bd->parNr);
+
         g_bd = bd;
         g_bd_sectors_per_sector = (2048 / bd->sectorSize);
         // Free usage of block device
@@ -38,10 +53,14 @@ void bdm_disconnect_bd(struct block_device *bd)
 {
     DPRINTF("disconnecting device %s%dp%d\n", bd->name, bd->devNr, bd->parNr);
 
-    // Lock usage of block device
-    WaitSema(bdm_io_sema);
-    if (g_bd == bd)
-        g_bd = NULL;
+    if (bd->devNr == cdvdman_settings.bdDeviceId) {
+        DPRINTF("detatching from %s%dp%d\n", bd->name, bd->devNr, bd->parNr);
+
+        // Lock usage of block device
+        WaitSema(bdm_io_sema);
+        if (g_bd == bd)
+            g_bd = NULL;
+    }
 }
 
 //
@@ -61,7 +80,16 @@ void DeviceInit(void)
     smp.attr = SA_THPRI;
     bdm_io_sema = CreateSema(&smp);
 
+    // Register pseudo bdm entry points.
     RegisterLibraryEntries(&_exp_bdm);
+
+#ifdef USE_BDM_ATA
+    RegisterLibraryEntries(&_exp_atad);
+
+    // Initialize ATA interface which will register the HDD as a block device.
+    atad_start();
+    atad_inited = 1;
+#endif
 }
 
 void DeviceDeinit(void)
@@ -86,6 +114,15 @@ void DeviceStop(void)
 
 void DeviceFSInit(void)
 {
+    DPRINTF("DeviceFSInit [BDM]\n");
+
+#ifdef USE_BDM_ATA
+    lba_48bit = cdvdman_settings.hddIsLBA48;
+
+    // TODO: there's more cdvdman init stuff after this in device-hdd.c...
+    DPRINTF("DiskType=%d Layer1Start=0x%08x Lba48=%d\n", cdvdman_settings.common.media, cdvdman_settings.common.layer1_start, (u32)lba_48bit);
+#endif
+
     DPRINTF("Waiting for device...\n");
     WaitSema(bdm_io_sema);
     DPRINTF("Waiting for device...done!\n");
@@ -104,11 +141,11 @@ void DeviceUnmount(void)
     DPRINTF("%s\n", __func__);
 }
 
-int DeviceReadSectors(u32 lsn, void *buffer, unsigned int sectors)
+int DeviceReadSectors(u64 lsn, void *buffer, unsigned int sectors)
 {
     int rv = SCECdErNO;
 
-    // DPRINTF("%s(%u, 0x%p, %u)\n", __func__, (unsigned int)lsn, buffer, sectors);
+    DPRINTF("%s(0x%08x%08x, 0x%p, %u)\n", __func__, U64_2XU32(&lsn), buffer, sectors);
 
     if (g_bd == NULL)
         return SCECdErTRMOPN;
@@ -125,7 +162,7 @@ int DeviceReadSectors(u32 lsn, void *buffer, unsigned int sectors)
 // oplutils exported function, used by MCEMU
 //
 
-void bdm_readSector(unsigned int lba, unsigned short int nsectors, unsigned char *buffer)
+void bdm_readSector(u64 lba, unsigned short int nsectors, unsigned char *buffer)
 {
     DPRINTF("%s\n", __func__);
 
@@ -134,7 +171,7 @@ void bdm_readSector(unsigned int lba, unsigned short int nsectors, unsigned char
     SignalSema(bdm_io_sema);
 }
 
-void bdm_writeSector(unsigned int lba, unsigned short int nsectors, const unsigned char *buffer)
+void bdm_writeSector(u64 lba, unsigned short int nsectors, const unsigned char *buffer)
 {
     DPRINTF("%s\n", __func__);
 

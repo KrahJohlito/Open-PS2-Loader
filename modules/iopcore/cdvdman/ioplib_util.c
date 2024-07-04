@@ -66,7 +66,7 @@ static struct FakeModule modulefake_list[] = {
     {"SMAP.IRX", "INET_SMAP_driver", FAKE_MODULE_ID_SMAP, FAKE_MODULE_FLAG_SMAP, 0x0219, 2},
     {"ENT_SMAP.IRX", "ent_smap", FAKE_MODULE_ID_SMAP, FAKE_MODULE_FLAG_SMAP, 0x021f, 2},
 #endif
-#ifdef HDD_DRIVER
+#if defined(HDD_DRIVER) || defined(USE_BDM_ATA)
     {"ATAD.IRX", "atad_driver", FAKE_MODULE_ID_ATAD, FAKE_MODULE_FLAG_ATAD, 0x0207, 0},
 #endif
     {"CDVDSTM.IRX", "cdvd_st_driver", FAKE_MODULE_ID_CDVDSTM, FAKE_MODULE_FLAG_CDVDSTM, 0x0202, 2},
@@ -146,6 +146,13 @@ static int Hook_LoadStartModule(char *modpath, int arg_len, char *args, int *mod
     const struct FakeModule *mod;
 
     DPRINTF("Hook_LoadStartModule() modpath = %s\n", modpath);
+
+#ifdef __IOPCORE_DEBUG
+    u32 freeMemSize = QueryTotalFreeMemSize();
+    u32 totalMemSize = QueryMemSize();
+
+    DPRINTF("IOP memory stats: Used=0x%08x Free=0x%08x Total=0x%08x\n", totalMemSize - freeMemSize, freeMemSize, totalMemSize);
+#endif
 
     mod = checkFakemodByFile(modpath, modulefake_list);
     if (mod != NULL && mod->flag) {

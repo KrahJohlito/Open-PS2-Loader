@@ -42,6 +42,10 @@ EESIO_DEBUG ?= 0
 INGAME_DEBUG ?= 0
 DECI2_DEBUG ?= 0
 
+EXCEPTION_HANDLER ?= 1
+
+ATA_UDMA_PLUS ?= 1
+
 # ======== DO NOT MODIFY VALUES AFTER THIS POINT! UNLESS YOU KNOW WHAT YOU ARE DOING ========
 REVISION = $(shell expr $(shell git rev-list --count HEAD) + 2)
 
@@ -78,7 +82,7 @@ IOP_OBJS =	iomanx.o filexio.o ps2fs.o usbd.o bdmevent.o \
 		libsd.o audsrv.o
 
 EECORE_OBJS = ee_core.o ioprp.o util.o imgdrv.o eesync.o \
-		bdm_cdvdman.o IOPRP_img.o smb_cdvdman.o \
+		bdm_cdvdman.o bdm_ata_cdvdman.o IOPRP_img.o smb_cdvdman.o \
 		hdd_cdvdman.o hdd_hdpro_cdvdman.o cdvdfsv.o \
 		ingame_smstcpip.o smap_ingame.o smbman.o smbinit.o
 
@@ -123,6 +127,10 @@ BIN2C = $(PS2SDK)/bin/bin2c
 # WARNING: Only extra spaces are allowed and ignored at the beginning of the conditional directives (ifeq, ifneq, ifdef, ifndef, else and endif)
 # but a tab is not allowed; if the line begins with a tab, it will be considered part of a recipe for a rule!
 
+ifeq ($(ATA_UDMA_PLUS),1)
+  EE_CFLAGS += -DATA_UDMA_PLUS
+endif
+
 ifeq ($(RTL),1)
   EE_CFLAGS += -D__RTL
 endif
@@ -148,8 +156,13 @@ else
   PADEMU_FLAGS = PADEMU=0
 endif
 
+ifeq ($(EXCEPTION_HANDLER),1)
+  EE_CFLAGS += -DCATCH_EXCEPTIONS
+  FRONTEND_OBJS += exphandler.o exceptions.o
+endif
+
 ifeq ($(DEBUG),1)
-  EE_CFLAGS += -D__DEBUG -g
+  EE_CFLAGS += -D__DEBUG -g -Wno-strict-aliasing
   ifeq ($(DECI2_DEBUG),1)
     EE_OBJS += debug.o drvtif_irx.o tifinet_irx.o deci2_img.o
     EE_LDFLAGS += -liopreboot
@@ -164,10 +177,12 @@ ifeq ($(DEBUG),1)
     MCEMU_DEBUG_FLAGS = IOPCORE_DEBUG=1
     SMSTCPIP_INGAME_CFLAGS =
     IOP_OBJS += udptty-ingame.o
-  else ifeq ($(EESIO_DEBUG),1)
+  endif
+  ifeq ($(EESIO_DEBUG),1)
     EE_CFLAGS += -D__EESIO_DEBUG
     EE_LIBS += -lsiocookie
-  else ifeq ($(INGAME_DEBUG),1)
+  endif
+  ifeq ($(INGAME_DEBUG),1)
     EE_CFLAGS += -D__INGAME_DEBUG
     EECORE_EXTRA_FLAGS = LOAD_DEBUG_MODULES=1
     CDVDMAN_DEBUG_FLAGS = IOPCORE_DEBUG=1
@@ -244,6 +259,7 @@ clean:	download_lwNBD
 	$(MAKE) -C modules/iopcore/imgdrv clean
 	echo " -cdvdman"
 	$(MAKE) -C modules/iopcore/cdvdman USE_BDM=1 clean
+	$(MAKE) -C modules/iopcore/cdvdman USE_BDM_ATA=1 clean
 	$(MAKE) -C modules/iopcore/cdvdman USE_SMB=1 clean
 	$(MAKE) -C modules/iopcore/cdvdman USE_HDD=1 clean
 	$(MAKE) -C modules/iopcore/cdvdman USE_HDPRO=1 clean
@@ -373,6 +389,12 @@ modules/iopcore/cdvdman/bdm_cdvdman.irx: modules/iopcore/cdvdman
 
 $(EE_ASM_DIR)bdm_cdvdman.c: modules/iopcore/cdvdman/bdm_cdvdman.irx | $(EE_ASM_DIR)
 	$(BIN2C) $< $@ $(*F)_irx
+
+modules/iopcore/cdvdman/bdm_ata_cdvdman.irx: modules/iopcore/cdvdman
+	$(MAKE) $(CDVDMAN_PS2LOGO_FLAGS) $(CDVDMAN_DEBUG_FLAGS) USE_BDM_ATA=1 -C $< all
+
+$(EE_ASM_DIR)bdm_ata_cdvdman.c: modules/iopcore/cdvdman/bdm_ata_cdvdman.irx | $(EE_ASM_DIR)
+	$(BIN2C) $< $@ bdm_ata_cdvdman_irx
 
 modules/iopcore/cdvdman/smb_cdvdman.irx: modules/iopcore/cdvdman
 	$(MAKE) $(CDVDMAN_PS2LOGO_FLAGS) $(CDVDMAN_DEBUG_FLAGS) USE_SMB=1 -C $< all
@@ -719,6 +741,9 @@ $(EE_OBJS_DIR)%.o: $(EE_SRC_DIR)%.c | $(EE_OBJS_DIR)
 
 $(EE_OBJS_DIR)%.o: $(EE_ASM_DIR)%.c | $(EE_OBJS_DIR)
 	$(EE_CC) $(EE_CFLAGS) $(EE_INCS) -c $< -o $@
+
+$(EE_OBJS_DIR)%.o: $(EE_SRC_DIR)%.S | $(EE_OBJS_DIR)
+	$(EE_AS) $(EE_ASFLAGS) $< -o $@
 
 $(PNG_ASSETS:%=$(EE_ASM_DIR)%_png.c): $(EE_ASM_DIR)%_png.c: $(PNG_ASSETS_DIR)%.png | $(EE_ASM_DIR)
 	$(BIN2C) $< $@ $(@:$(EE_ASM_DIR)%.c=%)
