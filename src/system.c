@@ -56,7 +56,7 @@ extern unsigned int size_eesync_irx;
 
 #define MAX_MODULES 64
 static void *g_sysLoadedModBuffer[MAX_MODULES];
-static s32 sysLoadModuleLock = -1;
+static s32 sysLoadModuleLock;
 
 #define ELF_MAGIC   0x464c457f
 #define ELF_PT_LOAD 1
@@ -220,9 +220,11 @@ void sysReset(int modload_mask)
     sbv_patch_enable_lmb();
     sbv_patch_disable_prefix_check();
 
-    if (sysLoadModuleLock < 0) {
-        sysLoadModuleLock = sbCreateSemaphore();
-    }
+    ee_sema_t semaphore;
+    semaphore.init_count = 1;
+    semaphore.max_count = 1;
+    semaphore.option = 0;
+    sysLoadModuleLock = CreateSema(&semaphore);
 
     // clears modules list
     memset((void *)&g_sysLoadedModBuffer[0], 0, MAX_MODULES * 4);
