@@ -903,8 +903,16 @@ void menuRenderMain()
     _menuRequestConfig();
 
     WaitSema(menuSemaId);
+
+    item_list_t *list = selected_item->item->userdata;
     theme_element_t *elem = gTheme->mainElems.first;
     while (elem) {
+        if ((list->mode == APP_MODE) && (elem->appAlternate != NULL)) {
+            elem->appAlternate->drawElem(selected_item, selected_item->item->current, itemConfig, elem->appAlternate);
+            elem = elem->next;
+            continue;
+        }
+
         if (elem->drawElem)
             elem->drawElem(selected_item, selected_item->item->current, itemConfig, elem);
 
@@ -962,9 +970,15 @@ void menuRenderInfo()
     // selected_item->item->current can't be NULL here as we only allow to switch to "Info" rendering when there is at least one item
     _menuRequestConfig();
 
-    WaitSema(menuSemaId);
+    item_list_t *list = selected_item->item->userdata;
     theme_element_t *elem = gTheme->infoElems.first;
     while (elem) {
+        if ((list->mode == APP_MODE) && (elem->appAlternate != NULL)) {
+            elem->appAlternate->drawElem(selected_item, selected_item->item->current, itemConfig, elem->appAlternate);
+            elem = elem->next;
+            continue;
+        }
+
         if (elem->drawElem)
             elem->drawElem(selected_item, selected_item->item->current, itemConfig, elem);
 

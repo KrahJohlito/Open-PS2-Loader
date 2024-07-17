@@ -639,6 +639,7 @@ static theme_element_t *initBasic(const char *themePath, config_set_t *themeConf
     elem->drawElem = NULL;
     elem->endElem = &endBasic;
     elem->next = NULL;
+    elem->appAlternate = NULL;
 
     snprintf(elemProp, sizeof(elemProp), "%s_x", name);
     if (configGetStr(themeConfig, elemProp, &temp)) {
@@ -923,6 +924,7 @@ static int addGUIElem(const char *themePath, config_set_t *themeConfig, theme_t 
     int enabled = 1;
     char elemProp[64];
     theme_element_t *elem = NULL;
+    theme_element_t *appElem = NULL;
 
     snprintf(elemProp, sizeof(elemProp), "%s_enabled", name);
     configGetInt(themeConfig, elemProp, &enabled);
@@ -967,6 +969,13 @@ static int addGUIElem(const char *themePath, config_set_t *themeConfig, theme_t 
                 elem = initBasic(themePath, themeConfig, theme, name, ELEM_TYPE_GAME_IMAGE, 0, 0, ALIGN_CENTER, DIM_UNDEF, DIM_UNDEF, SCALING_RATIO, gDefaultCol, theme->fonts[0]);
                 initGameImage(themePath, themeConfig, theme, elem, name, "ICO", 20, NULL, NULL);
             } else if (!strcmp(elementsType[ELEM_TYPE_ITEM_COVER], type)) {
+                const char *alternate;
+                snprintf(elemProp, sizeof(elemProp), "%s_alternate", name);
+                configGetStr(themeConfig, elemProp, &alternate);
+                if (alternate) {
+                    appElem = initBasic(themePath, themeConfig, theme, alternate, ELEM_TYPE_GAME_IMAGE, 0, 0, ALIGN_CENTER, DIM_UNDEF, DIM_UNDEF, SCALING_RATIO, gDefaultCol, theme->fonts[0]);
+                    initGameImage(themePath, themeConfig, theme, appElem, alternate, "COV", 10, NULL, NULL);
+                }
                 elem = initBasic(themePath, themeConfig, theme, name, ELEM_TYPE_GAME_IMAGE, 0, 0, ALIGN_CENTER, DIM_UNDEF, DIM_UNDEF, SCALING_RATIO, gDefaultCol, theme->fonts[0]);
                 initGameImage(themePath, themeConfig, theme, elem, name, "COV", 10, NULL, NULL);
             } else if (!strcmp(elementsType[ELEM_TYPE_ITEM_TEXT], type)) {
@@ -993,6 +1002,9 @@ static int addGUIElem(const char *themePath, config_set_t *themeConfig, theme_t 
                     elems->last->next = elem;
                     elems->last = elem;
                 }
+
+                if (appElem)
+                    elems->last->appAlternate = appElem;
             }
         } else
             return 0; // ends the reading of elements
@@ -1007,6 +1019,8 @@ static void freeGUIElems(theme_elems_t *elems)
     while (elem) {
         elems->first = elem->next;
         elem->endElem(elem);
+        if (elem->appAlternate != NULL)
+            elem->appAlternate->endElem(elem->appAlternate);
         elem = elems->first;
     }
 }

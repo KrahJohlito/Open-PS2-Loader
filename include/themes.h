@@ -84,6 +84,7 @@ typedef struct theme_element
     void (*endElem)(struct theme_element *elem);
 
     struct theme_element *next;
+    struct theme_element *appAlternate;
 } theme_element_t;
 
 typedef struct
