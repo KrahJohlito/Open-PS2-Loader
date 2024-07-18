@@ -897,7 +897,7 @@ void menuHandleInputMenu()
     }
 }
 
-void menuRenderMain()
+static void menuRenderDevicePage(theme_element_t *elem)
 {
     // selected_item can't be NULL here as we only allow to switch to "Main" rendering when there is at least one device activated
     _menuRequestConfig();
@@ -905,7 +905,6 @@ void menuRenderMain()
     WaitSema(menuSemaId);
 
     item_list_t *list = selected_item->item->userdata;
-    theme_element_t *elem = gTheme->mainElems.first;
     while (elem) {
         if ((list->mode == APP_MODE) && (elem->appAlternate != NULL)) {
             elem->appAlternate->drawElem(selected_item, selected_item->item->current, itemConfig, elem->appAlternate);
@@ -919,6 +918,11 @@ void menuRenderMain()
         elem = elem->next;
     }
     SignalSema(menuSemaId);
+}
+
+void menuRenderMain(void)
+{
+    menuRenderDevicePage(gTheme->mainElems.first);
 }
 
 void menuHandleInputMain()
@@ -965,26 +969,9 @@ void menuHandleInputMain()
     }
 }
 
-void menuRenderInfo()
+void menuRenderInfo(void)
 {
-    // selected_item->item->current can't be NULL here as we only allow to switch to "Info" rendering when there is at least one item
-    _menuRequestConfig();
-
-    item_list_t *list = selected_item->item->userdata;
-    theme_element_t *elem = gTheme->infoElems.first;
-    while (elem) {
-        if ((list->mode == APP_MODE) && (elem->appAlternate != NULL)) {
-            elem->appAlternate->drawElem(selected_item, selected_item->item->current, itemConfig, elem->appAlternate);
-            elem = elem->next;
-            continue;
-        }
-
-        if (elem->drawElem)
-            elem->drawElem(selected_item, selected_item->item->current, itemConfig, elem);
-
-        elem = elem->next;
-    }
-    SignalSema(menuSemaId);
+    menuRenderDevicePage(gTheme->infoElems.first);
 }
 
 void menuHandleInputInfo()
