@@ -490,6 +490,7 @@ int guiIoModeToDeviceType(int ioMode)
         case BDM_MODE2:
         case BDM_MODE3:
         case BDM_MODE4:
+        case BDM_MODE5:
             return 0;
         case ETH_MODE:
             return 1;

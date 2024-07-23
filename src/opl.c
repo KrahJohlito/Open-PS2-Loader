@@ -301,7 +301,7 @@ static void itemExecSelect(struct menu_item *curMenu)
             // If we're trying to enable BDM support we need to enable it for all BDM menu slots.
             if (support->mode == BDM_MODE) {
                 // Initialize support for all bdm modules.
-                for (int i = 0; i <= BDM_MODE4; i++) {
+                for (int i = 0; i <= BDM_MODE5; i++) {
                     opl_io_module_t *mod = &list_support[i];
                     assert(mod);
                     assert(mod->support);
@@ -472,11 +472,11 @@ static void deinitAllSupport(int exception, int modeSelected)
     for (int i = 0; i < MODE_COUNT; i++) {
         if (list_support[i].support != NULL) {
             // If the selected mode is one of the mass devices then skip deinit for all mass device objects.
-            if (modeSelected >= BDM_MODE && modeSelected <= BDM_MODE4 && i <= BDM_MODE4)
+            if (modeSelected >= BDM_MODE && modeSelected <= BDM_MODE5 && i <= BDM_MODE5)
                 continue;
 
             // If the selected device is a mass device and it's backed by the ATA drivers skip unloading them as well.
-            if (i == HDD_MODE && (modeSelected >= BDM_MODE && modeSelected <= BDM_MODE4)) {
+            if (i == HDD_MODE && (modeSelected >= BDM_MODE && modeSelected <= BDM_MODE5)) {
                 bdm_device_data_t *pDeviceData = list_support[modeSelected].support->priv;
                 if (strncmp(pDeviceData->bdmDriver, "ata", 3) == 0)
                     continue;

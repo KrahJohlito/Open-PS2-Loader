@@ -12,6 +12,7 @@ enum IO_MODES {
     BDM_MODE2,
     BDM_MODE3,
     BDM_MODE4,
+    BDM_MODE5,
     ETH_MODE,
     HDD_MODE,
     APP_MODE,
