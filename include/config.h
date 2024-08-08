@@ -32,6 +32,7 @@ enum CONFIG_INDEX {
 #define CONFIG_ITEM_MEDIA        "#Media"
 #define CONFIG_ITEM_STARTUP      "#Startup"
 #define CONFIG_ITEM_ALTSTARTUP   "$AltStartup"
+#define CONFIG_ITEM_ARGV2        "$argv2"
 #define CONFIG_ITEM_VMC          "$VMC"
 #define CONFIG_ITEM_COMPAT       "$Compatibility"
 #define CONFIG_ITEM_DMA          "$DMA"

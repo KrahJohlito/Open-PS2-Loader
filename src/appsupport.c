@@ -197,7 +197,7 @@ static int appScanCallback(const char *path, config_set_t *appConfig, void *arg)
 {
     struct app_info_linked **appsLinkedList = (struct app_info_linked **)arg;
     struct app_info_linked *app;
-    const char *title, *boot, *argv1;
+    const char *title, *boot, *argv1, *argv2;
 
     if (configGetStr(appConfig, APP_CONFIG_TITLE, &title) != 0 && configGetStr(appConfig, APP_CONFIG_BOOT, &boot) != 0) {
         if (*appsLinkedList == NULL) {
@@ -224,10 +224,15 @@ static int appScanCallback(const char *path, config_set_t *appConfig, void *arg)
         strncpy(app->app.path, path, APP_PATH_MAX + 1);
         app->app.path[APP_PATH_MAX] = '\0';
         if (configGetStr(appConfig, APP_CONFIG_ARGV1, &argv1) != 0) {
-            strncpy(app->app.argv1, argv1, APP_ARGV1_MAX + 1);
-            app->app.argv1[APP_ARGV1_MAX] = '\0';
+            strncpy(app->app.argv1, argv1, APP_ARGV_MAX + 1);
+            app->app.argv1[APP_ARGV_MAX] = '\0';
         } else
             app->app.argv1[0] = '\0';
+        if (configGetStr(appConfig, APP_CONFIG_ARGV2, &argv2) != 0) {
+            strncpy(app->app.argv2, argv2, APP_ARGV_MAX + 1);
+            app->app.argv2[APP_ARGV_MAX] = '\0';
+        } else
+            app->app.argv2[0] = '\0';
         app->app.legacy = 0;
         return 0;
     } else {
@@ -359,7 +364,7 @@ static void appLaunchItem(int id, config_set_t *configSet)
 {
     int fd;
     const char *filename;
-    const char *argv1;
+    const char *argv1, *argv2;
 
     // Retrieve configuration set by appGetConfig()
     configGetStr(configSet, CONFIG_ITEM_STARTUP, &filename);
@@ -386,6 +391,11 @@ static void appLaunchItem(int id, config_set_t *configSet)
         if (configGetStr(configSet, CONFIG_ITEM_ALTSTARTUP, &argv1) != 0) {
             argv[1] = (char *)argv1;
             argc = 2;
+        }
+
+        if (configGetStr(configSet, CONFIG_ITEM_ARGV2, &argv2) != 0) {
+            argv[2] = (char *)argv2;
+            argc = 3;
         }
 
         deinit(UNMOUNT_EXCEPTION, mode); // CAREFUL: deinit will call appCleanUp, so configApps/cur will be freed
@@ -422,6 +432,7 @@ static config_set_t *appGetConfig(int id)
         configSetStr(config, CONFIG_ITEM_NAME, appsList[id].boot);
         configSetStr(config, CONFIG_ITEM_LONGNAME, appsList[id].title);
         configSetStr(config, CONFIG_ITEM_ALTSTARTUP, appsList[id].argv1); // reuse AltStartup for argument 1
+        configSetStr(config, CONFIG_ITEM_ARGV2, appsList[id].argv2);
         snprintf(path, sizeof(path), "%s/%s", appsList[id].path, appsList[id].boot);
         configSetStr(config, CONFIG_ITEM_STARTUP, path);
         configSetStr(config, CONFIG_ITEM_MEDIA, "APP");
