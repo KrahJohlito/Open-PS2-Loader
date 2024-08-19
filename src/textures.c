@@ -54,6 +54,7 @@ extern void *ELF_png;
 extern void *HDL_png;
 extern void *ISO_png;
 extern void *UL_png;
+extern void *APPS_png;
 extern void *CD_png;
 extern void *DVD_png;
 extern void *Aspect_s_png;
@@ -94,6 +95,7 @@ extern void *Vmode_pal_png;
 
 extern void *logo_png;
 extern void *case_png;
+extern void *apps_case_png;
 
 static int texPngLoad(GSTEXTURE *texture, const char *path);
 static int texPngLoadInternal(GSTEXTURE *texture, int texId);
@@ -157,6 +159,7 @@ static texture_t internalDefault[TEXTURES_COUNT] = {
     {HDL_FORMAT, "HDL", &HDL_png},
     {ISO_FORMAT, "ISO", &ISO_png},
     {UL_FORMAT, "UL", &UL_png},
+    {APP_MEDIA, "APP", &APPS_png},
     {CD_MEDIA, "CD", &CD_png},
     {DVD_MEDIA, "DVD", &DVD_png},
     {ASPECT_STD, "Aspect_s", &Aspect_s_png},
@@ -196,6 +199,7 @@ static texture_t internalDefault[TEXTURES_COUNT] = {
     {VMODE_PAL, "Vmode_pal", &Vmode_pal_png},
     {LOGO_PICTURE, "logo", &logo_png},
     {CASE_OVERLAY, "case", &case_png},
+    {APPS_CASE_OVERLAY, "apps_case", &apps_case_png},
 };
 
 int texLookupInternalTexId(const char *name)
