@@ -1376,7 +1376,7 @@ void guiDrawSubMenuHints(void)
     x += 12;
     guiDrawIconAndText(gSelectButton == KEY_CIRCLE ? subMenuIcons[1] : subMenuIcons[0], subMenuHints[1], gTheme->fonts[0], x, y, gTheme->textColor);
 }
-
+extern char test[256];
 static int endIntro = 0; // Break intro loop and start 'Last Played Auto Start' countdown
 static void guiDrawOverlays()
 {
@@ -1434,7 +1434,7 @@ static void guiDrawOverlays()
         y += yadd;
     }
 #endif
-
+    fntRenderString(gTheme->fonts[0], 5, 5, ALIGN_LEFT, 0, 0, test, GS_SETREG_RGBA(0x60, 0x60, 0x60, 0x80));
     // Last Played Auto Start
     if (!pending && DisableCron == 0 && endIntro) {
         if (CronStart == 0) {

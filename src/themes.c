@@ -482,13 +482,17 @@ static mutable_image_t *initMutableImage(const char *themePath, config_set_t *th
 
 static void drawStaticImage(struct menu_list *menu, struct submenu_list *item, config_set_t *config, struct theme_element *elem)
 {
+    int x = elem->posX;
+    if (gWideScreen)
+        x = elem->wsPosX;
+
     mutable_image_t *staticImage = (mutable_image_t *)elem->extended;
     if (staticImage->overlayTexture) {
-        rmDrawOverlayPixmap(&staticImage->overlayTexture->source, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
+        rmDrawOverlayPixmap(&staticImage->overlayTexture->source, x, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
                             &staticImage->defaultTexture->source, staticImage->overlayTexture->upperLeft_x, staticImage->overlayTexture->upperLeft_y, staticImage->overlayTexture->upperRight_x, staticImage->overlayTexture->upperRight_y,
                             staticImage->overlayTexture->lowerLeft_x, staticImage->overlayTexture->lowerLeft_y, staticImage->overlayTexture->lowerRight_x, staticImage->overlayTexture->lowerRight_y);
     } else
-        rmDrawPixmap(&staticImage->defaultTexture->source, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
+        rmDrawPixmap(&staticImage->defaultTexture->source, x, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
 }
 
 static void initStaticImage(const char *themePath, config_set_t *themeConfig, theme_t *theme, theme_element_t *elem, const char *name, const char *imageName)
@@ -518,6 +522,10 @@ static GSTEXTURE *getGameImageTexture(image_cache_t *cache, void *support, struc
 
 static void drawGameImage(struct menu_list *menu, struct submenu_list *item, config_set_t *config, struct theme_element *elem)
 {
+    int x = elem->posX;
+    if (gWideScreen)
+        x = elem->wsPosX;
+
     mutable_image_t *gameImage = (mutable_image_t *)elem->extended;
     if (item) {
         GSTEXTURE *texture = getGameImageTexture(gameImage->cache, menu->item->userdata, &item->item);
@@ -532,15 +540,15 @@ static void drawGameImage(struct menu_list *menu, struct submenu_list *item, con
         }
 
         if (gameImage->overlayTexture) {
-            rmDrawOverlayPixmap(&gameImage->overlayTexture->source, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
+            rmDrawOverlayPixmap(&gameImage->overlayTexture->source, x, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
                                 texture, gameImage->overlayTexture->upperLeft_x, gameImage->overlayTexture->upperLeft_y, gameImage->overlayTexture->upperRight_x, gameImage->overlayTexture->upperRight_y,
                                 gameImage->overlayTexture->lowerLeft_x, gameImage->overlayTexture->lowerLeft_y, gameImage->overlayTexture->lowerRight_x, gameImage->overlayTexture->lowerRight_y);
         } else
-            rmDrawPixmap(texture, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
+            rmDrawPixmap(texture, x, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
 
     } else if (elem->type == ELEM_TYPE_BACKGROUND) {
         if (gameImage->defaultTexture)
-            rmDrawPixmap(&gameImage->defaultTexture->source, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
+            rmDrawPixmap(&gameImage->defaultTexture->source, x, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
         else
             guiDrawBGPlasma();
     }
@@ -562,6 +570,10 @@ static void initGameImage(const char *themePath, config_set_t *themeConfig, them
 
 static void drawAttributeImage(struct menu_list *menu, struct submenu_list *item, config_set_t *config, struct theme_element *elem)
 {
+    int x = elem->posX;
+    if (gWideScreen)
+        x = elem->wsPosX;
+
     mutable_image_t *attributeImage = (mutable_image_t *)elem->extended;
     if (config) {
         if (attributeImage->currentConfigId != config->uid) {
@@ -584,7 +596,7 @@ static void drawAttributeImage(struct menu_list *menu, struct submenu_list *item
                 }
                 GSTEXTURE *texture = thmGetTexture(texId);
                 if (texture && texture->Mem)
-                    rmDrawPixmap(texture, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
+                    rmDrawPixmap(texture, x, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
 
                 return;
             } else {
@@ -592,11 +604,11 @@ static void drawAttributeImage(struct menu_list *menu, struct submenu_list *item
                 GSTEXTURE *texture = cacheGetTexture(attributeImage->cache, menu->item->userdata, &posZ, &attributeImage->currentUid, attributeImage->currentValue);
                 if (texture && texture->Mem) {
                     if (attributeImage->overlayTexture) {
-                        rmDrawOverlayPixmap(&attributeImage->overlayTexture->source, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
+                        rmDrawOverlayPixmap(&attributeImage->overlayTexture->source, x, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
                                             texture, attributeImage->overlayTexture->upperLeft_x, attributeImage->overlayTexture->upperLeft_y, attributeImage->overlayTexture->upperRight_x, attributeImage->overlayTexture->upperRight_y,
                                             attributeImage->overlayTexture->lowerLeft_x, attributeImage->overlayTexture->lowerLeft_y, attributeImage->overlayTexture->lowerRight_x, attributeImage->overlayTexture->lowerRight_y);
                     } else
-                        rmDrawPixmap(texture, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
+                        rmDrawPixmap(texture, x, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
 
                     return;
                 }
@@ -604,7 +616,7 @@ static void drawAttributeImage(struct menu_list *menu, struct submenu_list *item
         }
     }
     if (attributeImage->defaultTexture)
-        rmDrawPixmap(&attributeImage->defaultTexture->source, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
+        rmDrawPixmap(&attributeImage->defaultTexture->source, x, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
 }
 
 static void initAttributeImage(const char *themePath, config_set_t *themeConfig, theme_t *theme, theme_element_t *elem, const char *name)
@@ -711,6 +723,14 @@ static theme_element_t *initBasic(const char *themePath, config_set_t *themeConf
             elem->font = theme->fonts[intValue];
     }
 
+    if (elem->posX == screenWidth >> 1) // pos mid unaffected by ws stretching
+        elem->wsPosX = elem->posX;
+    else {
+        int x = elem->posX;
+        int i = elem->posX / 12;
+        elem->wsPosX = x += i;
+    }
+
     return elem;
 }
 
@@ -782,6 +802,7 @@ static void drawMenuText(struct menu_list *menu, struct submenu_list *item, conf
     fntRenderString(elem->font, elem->posX, elem->posY, elem->aligned, 0, 0, menuItemGetText(menu->item), elem->color);
 }
 
+char test[256];
 static void drawBDMIndex(struct menu_list *menu, struct submenu_list *item, config_set_t *config, struct theme_element *elem)
 {
     item_list_t *itemList = menu->item->userdata;
@@ -796,9 +817,16 @@ static void drawBDMIndex(struct menu_list *menu, struct submenu_list *item, conf
     char imgName[32];
     snprintf(imgName, sizeof(imgName), "Index_%d", itemList->mode);
 
+    int x = elem->posX;
+    if (gWideScreen)
+        x = elem->wsPosX;
+    int w, h;
+    rmGetScreenExtentsNative(&w, &h);
+    snprintf(test, sizeof(test), "w=%d, h=%d, posx=%d, nx=%d", w, h, elem->posX, elem->wsPosX);
+
     GSTEXTURE *indexTex = thmGetTexture(texLookupInternalTexId(&imgName[0]));
     if (indexTex && indexTex->Mem)
-        rmDrawPixmap(indexTex, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
+        rmDrawPixmap(indexTex, x, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
 }
 
 static void drawItemsList(struct menu_list *menu, struct submenu_list *item, config_set_t *config, struct theme_element *elem)

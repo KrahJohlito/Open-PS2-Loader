@@ -71,6 +71,7 @@ typedef struct theme_element
     int type;
     int posX;
     int posY;
+    int wsPosX;
     short aligned;
     int width;
     int height;
