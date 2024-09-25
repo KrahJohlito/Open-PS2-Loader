@@ -22,6 +22,14 @@ extern struct irx_export_table _exp_bdm;
 // BDM exported functions
 //
 
+void bdm_on_device_ready(int event)
+{
+    if (event == BDM_EVENT_DEVICE_READY && g_bd != NULL) {
+        DPRINTF("Device %s%dp%d is now ready. UNLOCKING...\n", g_bd->name, g_bd->devNr, g_bd->parNr);
+        SignalSema(bdm_io_sema);
+    }
+}
+
 void bdm_connect_bd(struct block_device *bd)
 {
     DPRINTF("connecting device %s%dp%d\n", bd->name, bd->devNr, bd->parNr);
@@ -30,8 +38,13 @@ void bdm_connect_bd(struct block_device *bd)
         DPRINTF("attaching to %s%dp%d\n", bd->name, bd->devNr, bd->parNr);
         g_bd = bd;
         g_bd_sectors_per_sector = (2048 / bd->sectorSize);
-        // Free usage of block device
-        SignalSema(bdm_io_sema);
+
+        if (!strncmp(bd->name, "usb", 3)) {
+            bd->device_ready_callback = bdm_on_device_ready;
+        } else {
+            DPRINTF("Device %s%dp%d is now ready. UNLOCKING...\n", g_bd->name, g_bd->devNr, g_bd->parNr);
+            SignalSema(bdm_io_sema);
+        }
     }
 }
 
