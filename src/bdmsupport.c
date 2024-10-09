@@ -491,10 +491,6 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
     // adjust ZSO cache
     settings->common.zso_cache = bdmCacheSize;
 
-    // Get DMA settings for ATA mode.
-    int dmaType = 0, dmaMode = 7;
-    configGetInt(configSet, CONFIG_ITEM_DMA, &dmaMode);
-
     if ((result = sbLoadCheats(pDeviceData->bdmPrefix, game->startup)) < 0) {
         if (gAutoLaunchBDMGame == NULL) {
             switch (result) {
@@ -522,6 +518,10 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
     settings->bdDeviceId = pDeviceData->massDeviceIndex;
 
     if (!strcmp(bdmCurrentDriver, "ata") && strlen(bdmCurrentDriver) == 3) {
+        // Get DMA settings for ATA mode.
+        int dmaType = 0, dmaMode = 7;
+        configGetInt(configSet, CONFIG_ITEM_DMA, &dmaMode);
+
         // Set DMA mode and spindown time.
         if (dmaMode < 3)
             dmaType = 0x20;
