@@ -215,6 +215,9 @@ void guiShowAbout()
 #ifdef PADEMU
                                                        " - PADEMU"
 #endif
+#ifdef ATA_UDMA_PLUS
+                                                       " - UDMA+"
+#endif
              // Version numbers
              ,
              GSM_VERSION
@@ -441,11 +444,13 @@ static void guiShowBlockDeviceConfig(void)
 
     diaSetInt(diaBlockDevicesConfig, CFG_ENABLEILK, gEnableILK);
     diaSetInt(diaBlockDevicesConfig, CFG_ENABLEMX4SIO, gEnableMX4SIO);
+    diaSetInt(diaBlockDevicesConfig, CFG_ENABLEBDMHDD, gEnableBdmHDD);
 
     ret = diaExecuteDialog(diaBlockDevicesConfig, -1, 1, NULL);
     if (ret) {
         diaGetInt(diaBlockDevicesConfig, CFG_ENABLEILK, &gEnableILK);
         diaGetInt(diaBlockDevicesConfig, CFG_ENABLEMX4SIO, &gEnableMX4SIO);
+        diaGetInt(diaBlockDevicesConfig, CFG_ENABLEBDMHDD, &gEnableBdmHDD);
     }
 }
 

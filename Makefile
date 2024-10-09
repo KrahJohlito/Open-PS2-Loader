@@ -39,6 +39,8 @@ DTL_T10000 ?= 0
 #Nor stripping neither compressing binary ELF after compiling.
 NOT_PACKED ?= 0
 
+ATA_UDMA_PLUS ?= 1
+
 # ======== END OF CONFIGURABLE SECTION. DO NOT MODIFY VARIABLES AFTER THIS POINT!! ========
 DEBUG ?= 0
 EESIO_DEBUG ?= 0
@@ -84,7 +86,7 @@ IOP_OBJS =	iomanx.o filexio.o ps2fs.o usbd.o bdmevent.o \
 
 EECORE_OBJS = ee_core.o ioprp.o util.o \
 		udnl.o imgdrv.o eesync.o \
-		bdm_cdvdman.o IOPRP_img.o smb_cdvdman.o \
+		bdm_cdvdman.o bdm_ata_cdvdman.o IOPRP_img.o smb_cdvdman.o \
 		hdd_cdvdman.o hdd_hdpro_cdvdman.o cdvdfsv.o \
 		ingame_smstcpip.o smap_ingame.o smbman.o smbinit.o
 
@@ -130,6 +132,10 @@ BIN2C = $(PS2SDK)/bin/bin2c
 
 # WARNING: Only extra spaces are allowed and ignored at the beginning of the conditional directives (ifeq, ifneq, ifdef, ifndef, else and endif)
 # but a tab is not allowed; if the line begins with a tab, it will be considered part of a recipe for a rule!
+
+ifeq ($(ATA_UDMA_PLUS),1)
+  EE_CFLAGS += -DATA_UDMA_PLUS
+endif
 
 ifeq ($(RTL),1)
   EE_CFLAGS += -D__RTL
@@ -275,6 +281,7 @@ clean:	download_lwNBD
 	$(MAKE) -C modules/iopcore/imgdrv clean
 	echo " -cdvdman"
 	$(MAKE) -C modules/iopcore/cdvdman USE_BDM=1 clean
+	$(MAKE) -C modules/iopcore/cdvdman USE_BDM_ATA=1 clean
 	$(MAKE) -C modules/iopcore/cdvdman USE_SMB=1 clean
 	$(MAKE) -C modules/iopcore/cdvdman USE_HDD=1 clean
 	$(MAKE) -C modules/iopcore/cdvdman USE_HDPRO=1 clean
@@ -407,6 +414,12 @@ modules/iopcore/cdvdman/bdm_cdvdman.irx: modules/iopcore/cdvdman
 
 $(EE_ASM_DIR)bdm_cdvdman.c: modules/iopcore/cdvdman/bdm_cdvdman.irx | $(EE_ASM_DIR)
 	$(BIN2C) $< $@ $(*F)_irx
+
+modules/iopcore/cdvdman/bdm_ata_cdvdman.irx: modules/iopcore/cdvdman
+	$(MAKE) $(CDVDMAN_PS2LOGO_FLAGS) $(CDVDMAN_DEBUG_FLAGS) USE_BDM_ATA=1 -C $< all
+
+$(EE_ASM_DIR)bdm_ata_cdvdman.c: modules/iopcore/cdvdman/bdm_ata_cdvdman.irx | $(EE_ASM_DIR)
+	$(BIN2C) $< $@ bdm_ata_cdvdman_irx
 
 modules/iopcore/cdvdman/smb_cdvdman.irx: modules/iopcore/cdvdman
 	$(MAKE) $(CDVDMAN_PS2LOGO_FLAGS) $(CDVDMAN_DEBUG_FLAGS) USE_SMB=1 -C $< all
@@ -610,7 +623,7 @@ modules/network/smbinit/smbinit.irx: modules/network/smbinit
 $(EE_ASM_DIR)smbinit.c: modules/network/smbinit/smbinit.irx | $(EE_ASM_DIR)
 	$(BIN2C) $< $@ $(*F)_irx
 
-$(EE_ASM_DIR)ps2atad.c: $(PS2SDK)/iop/irx/ps2atad.irx | $(EE_ASM_DIR)
+$(EE_ASM_DIR)ps2atad.c: $(PS2SDK)/iop/irx/ata_bd.irx | $(EE_ASM_DIR)
 	$(BIN2C) $< $@ $(*F)_irx
 
 $(EE_ASM_DIR)hdpro_atad.c: $(PS2SDK)/iop/irx/hdproatad.irx | $(EE_ASM_DIR)
