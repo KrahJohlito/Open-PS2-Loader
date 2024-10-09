@@ -392,6 +392,7 @@ void sysExecExit(void)
 #define CORE_IRX_DECI2  0x40
 #define CORE_IRX_ILINK  0x80
 #define CORE_IRX_MX4SIO 0x100
+#define CORE_IRX_BDM    0x200
 
 typedef struct
 {
@@ -473,6 +474,8 @@ static unsigned int sendIrxKernelRAM(const char *startup, const char *mode_str, 
         modules |= CORE_IRX_ILINK;
     else if (!strcmp(mode_str, "BDM_M4S_MODE"))
         modules |= CORE_IRX_MX4SIO;
+    else if (!strcmp(mode_str, "BDM_MASS_ATA_MODE"))
+        modules |= CORE_IRX_BDM | CORE_IRX_HDD;
     else if (!strcmp(mode_str, "ETH_MODE"))
         modules |= CORE_IRX_ETH | CORE_IRX_SMB;
     else
