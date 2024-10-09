@@ -521,6 +521,25 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
     snprintf(bdmCurrentDriver, sizeof(bdmCurrentDriver), "%s", pDeviceData->bdmDriver);
     settings->bdDeviceId = pDeviceData->massDeviceIndex;
 
+    if (!strcmp(bdmCurrentDriver, "ata") && strlen(bdmCurrentDriver) == 3) {
+        // Set DMA mode and spindown time.
+        if (dmaMode < 3)
+            dmaType = 0x20;
+        else {
+            dmaType = 0x40;
+#ifdef ATA_UDMA_PLUS
+            dmaMode = pDeviceData->ataHighestUDMAMode;
+#else
+            dmaMode -= 3;
+#endif
+        }
+
+        hddSetTransferMode(dmaType, dmaMode);
+        // gHDDSpindown [0..20] -> spindown [0..240] -> seconds [0..1200]
+        hddSetIdleTimeout(gHDDSpindown * 12);
+        settings->hddIsLBA48 = pDeviceData->bdmHddIsLBA48;
+    }
+
     if (gAutoLaunchBDMGame == NULL)
         deinit(NO_EXCEPTION, itemList->mode); // CAREFUL: deinit will call bdmCleanUp, so bdmGames/game will be freed
     else {
@@ -544,26 +563,8 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
         settings->common.fakemodule_flags |= 0;
         sysLaunchLoaderElf(filename, "BDM_M4S_MODE", irx_size, irx, size_mcemu_irx, bdm_mcemu_irx, EnablePS2Logo, compatmask);
     } else if (!strcmp(bdmCurrentDriver, "ata") && strlen(bdmCurrentDriver) == 3) {
-        // Set DMA mode and spindown time.
-        if (dmaMode < 3)
-            dmaType = 0x20;
-        else {
-            dmaType = 0x40;
-#ifdef ATA_UDMA_PLUS
-            dmaMode = pDeviceData->ataHighestUDMAMode; // fixme
-#else
-            dmaMode -= 3;
-#endif
-        }
-
-        hddSetTransferMode(dmaType, dmaMode);
-        // gHDDSpindown [0..20] -> spindown [0..240] -> seconds [0..1200]
-
-        hddSetIdleTimeout(gHDDSpindown * 12);
         settings->common.fakemodule_flags |= FAKE_MODULE_FLAG_DEV9;
         settings->common.fakemodule_flags |= FAKE_MODULE_FLAG_ATAD;
-        settings->hddIsLBA48 = pDeviceData->bdmHddIsLBA48; //fixme
-
         sysLaunchLoaderElf(filename, "BDM_MASS_ATA_MODE", irx_size, irx, size_mcemu_irx, bdm_mcemu_irx, EnablePS2Logo, compatmask);
     }
 }
