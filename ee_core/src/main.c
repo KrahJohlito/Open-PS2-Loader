@@ -47,7 +47,7 @@ static int eecoreInit(int argc, char **argv)
         config->GameMode = BDM_M4S_MODE;
     else if (!_strncmp(config->GameModeDesc, "BDM_USB_MODE", 12))
         config->GameMode = BDM_USB_MODE;
-    else if (!_strncmp(config->GameModeDesc, "BDM_MASS_ATA_MODE", 16))
+    else if (!_strncmp(config->GameModeDesc, "BDM_ATA_MODE", 16))
         config->GameMode = BDM_HDD_MODE;
     else if (!_strncmp(config->GameModeDesc, "ETH_MODE", 8))
         config->GameMode = ETH_MODE;
