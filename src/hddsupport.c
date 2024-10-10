@@ -340,7 +340,7 @@ void hddInit(item_list_t *itemList)
 item_list_t *hddGetObject(int initOnly)
 {
     if (initOnly)
-        hddLoadModules();
+        hddLoadModules(); // is this pointless now?
 
     if (initOnly && !hddGameList.enabled)
         return NULL;
