@@ -690,3 +690,5 @@ gui_strings:
   string: Analog Y-Axis Sensitivity
 - label: HDD_HINT
   string: Only one HDD allowed, enabling locks APA or GPT.
+- label: APA_JAIL
+  string: "APA Jail detected, %s not allowed for game partitions."

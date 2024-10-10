@@ -163,6 +163,8 @@ extern int gOSDLanguageSource;
 
 extern int showCfgPopup;
 
+extern int gAPAJailDetected;
+
 #ifdef IGS
 #define IGS_VERSION "0.1"
 #endif
