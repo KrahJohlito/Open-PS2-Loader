@@ -689,4 +689,4 @@ gui_strings:
 - label: YSENSITIVITY
   string: Analog Y-Axis Sensitivity
 - label: HDD_HINT
-  string: Only one HDD device can be enabled at a time, turning this on will lock APA or BDM HDD option.
+  string: Only one HDD device can be enabled at a time, turning this on will lock APA or BDM HDD option to off.
