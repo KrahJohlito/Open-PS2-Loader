@@ -214,7 +214,7 @@ void hddLoadModules(void)
     LOG("HDDSUPPORT LoadModules done\n");
 }
 
-// Returns 1 for MBR/GPT, 0 for APA, and -1 if an error occured
+// Returns 1 for MBR/GPT, 0 for APA, 2 for APAJ, and -1 if an error occurred
 int hddDetectNonSonyFileSystem()
 {
     int result = -1;
@@ -235,6 +235,25 @@ int hddDetectNonSonyFileSystem()
         return -1;
     }
 
+    // Check for APAJ signature at address 0xED first.
+    u64 magicNumber = *(u64 *)&pSectorData[0xED];
+    switch (magicNumber) {
+        case 0x4150414A2D410000: // APAJ-A
+        case 0x4150414A2D413200: // APAJ-A2
+        case 0x4150414A2D420000: // APAJ-B
+        case 0x4150414A2D423200: // APAJ-B2
+        case 0x4150414A2D430000: // APAJ-C
+        case 0x4150414A2D433200: // APAJ-C2
+            LOG("hddDetectNonSonyFileSystem: found APAJ partition data\n");
+            gAPAJailDetected = 1;
+            free(pSectorData);
+            return 2;
+        default:
+            // No APAJ signature.. continue with other checks.
+            break;
+    }
+
+    // If APAJ was not detected.. proceed with other checks.
     // Check for MBR signature.
     if (pSectorData[0x1FE] == 0x55 && pSectorData[0x1FF] == 0xAA) {
         // Found MBR partition type.
@@ -283,7 +302,7 @@ void hddLoadSupportModules(void)
     // Check if the drive contains MBR/GPT partition data before we load the APA/PFS modules. If the drive is not
     // APA then loading the APA irx modules can corrupt the drive as it will try to write APA partition data.
     if (hddDetectNonSonyFileSystem() != 0) {
-        // Drive is MBR/GPT style, or unknown, bail out or risk corrupting the drive.
+        // Drive is MBR/GPT style, APAJ, or unknown, bail out or risk corrupting the drive.
         LOG("HDDSUPPORT LoadSupportModules bailing out early...\n");
         return;
     }
