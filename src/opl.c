@@ -192,6 +192,7 @@ bdm_device_data_t *gAutoLaunchDeviceData;
 char gOPLPart[128];
 char *gHDDPrefix;
 char gExportName[32];
+int gAPAJailDetected;
 
 int gXSensitivity;
 int gYSensitivity;
@@ -1663,6 +1664,8 @@ static void setDefaults(void)
     gOPLPart[0] = '\0';
     gHDDPrefix = "pfs0:";
     gBaseMCDir = "mc?:OPL";
+
+    gAPAJailDetected = 0;
 
     bdmCacheSize = 16;
     hddCacheSize = 8;

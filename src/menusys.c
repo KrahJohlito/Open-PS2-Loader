@@ -90,6 +90,13 @@ static void menuRenameGame(submenu_list_t **submenu)
 
     item_list_t *support = selected_item->item->userdata;
 
+    if (gAPAJailDetected && (support->flags == MODE_FLAG_COMPAT_DMA)) {
+        char text[128];
+        snprintf(text, sizeof(text), _l(_STR_APA_JAIL), _l(_STR_RENAME));
+        guiMsgBox(text, 0, NULL);
+        return;
+    }
+
     if (support) {
         if (support->itemRename) {
             if (menuCheckParentalLock() == 0) {
@@ -123,6 +130,13 @@ static void menuDeleteGame(submenu_list_t **submenu)
         return;
 
     item_list_t *support = selected_item->item->userdata;
+
+    if (gAPAJailDetected && (support->flags == MODE_FLAG_COMPAT_DMA)) {
+        char text[128];
+        snprintf(text, sizeof(text), _l(_STR_APA_JAIL), _l(_STR_DELETE));
+        guiMsgBox(text, 0, NULL);
+        return;
+    }
 
     if (support) {
         if (support->itemDelete) {
