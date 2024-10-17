@@ -804,8 +804,10 @@ void sysLaunchLoaderElf(const char *filename, const char *mode_str, int size_cdv
     AddHistoryRecordUsingFullPath(filename);
 #endif
 
-    if (gExitPath[0] == '\0')
+    if (gExitPath[0] == '\0') {
         strncpy(gExitPath, "Browser", sizeof(gExitPath));
+        gExitPath[sizeof(gExitPath) - 1] = '\0';
+    }
 
     // Disable sound effects via libsd, to prevent some games with improper initialization from inadvertently using digital effect settings from other software.
     LOG("[CLEAREFFECTS]:\n");
@@ -886,7 +888,10 @@ void sysLaunchLoaderElf(const char *filename, const char *mode_str, int size_cdv
     config->magic[1] = EE_CORE_MAGIC_1;
 
     strncpy(config->ExitPath, gExitPath, CORE_EXIT_PATH_MAX_LEN);
+    config->ExitPath[CORE_EXIT_PATH_MAX_LEN - 1] = '\0';
+
     strncpy(config->GameModeDesc, mode_str, CORE_GAME_MODE_DESC_MAX_LEN);
+    config->GameModeDesc[CORE_GAME_MODE_DESC_MAX_LEN - 1] = '\0';
 
     config->EnableDebug = gEnableDebug;
     config->HDDSpindown = gHDDSpindown;
@@ -938,6 +943,7 @@ void sysLaunchLoaderElf(const char *filename, const char *mode_str, int size_cdv
     config->ModStorageEnd = ModuleStorageEnd;
 
     strncpy(config->GameID, filename, CORE_GAME_ID_MAX_LEN);
+    config->GameID[CORE_GAME_ID_MAX_LEN - 1] = '\0';
 
     config->_CompatMask = compatflags;
 
