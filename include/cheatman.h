@@ -34,11 +34,13 @@
 #include <ctype.h>
 #include <string.h>
 
-#define CHEAT_VERSION "0.5.3.65.g774d1"
+#define CHEAT_VERSION "0.5.3.7"
 
 #define MAX_HOOKS     5
 #define MAX_CODES     250
-#define MAX_CHEATLIST (MAX_HOOKS * 2 + MAX_CODES * 2)
+#define MAX_CHEATLIST (MAX_HOOKS * 2 + MAX_CODES * 3)
+
+#define MAX_CHEAT_NAME_LENGTH 128
 
 /* Some character defines */
 #define NUL         0x00
@@ -52,16 +54,19 @@
  * code_t - a code object
  * @addr: code address
  * @val: code value
+ * @enabled: cheat enabled flag (1 = enabled, 0 = disabled)
  */
 typedef struct
 {
     u32 addr;
     u32 val;
+    int enabled;
 } code_t;
 
 void InitCheatsConfig(config_set_t *configSet);
 int GetCheatsEnabled(void);
 const u32 *GetCheatsList(void);
+const char (*GetCheatsNames(void))[MAX_CHEAT_NAME_LENGTH];
 int load_cheats(const char *cheatfile);
 
 #endif /* _CHEATMAN_H_ */

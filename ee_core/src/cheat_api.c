@@ -45,7 +45,11 @@ void SetupCheats()
 
         code.addr = config->gCheatList[i];
         code.val = config->gCheatList[i + 1];
-        i += 2;
+        int enabled = config->gCheatList[i + 2];
+        i += 3;
+
+        if (enabled == 0)
+            continue;
 
         if ((code.addr == 0) && (code.val == 0))
             break;

@@ -1835,3 +1835,67 @@ int guiGameShowRemoveSettings(config_set_t *configSet, config_set_t *configGame)
 
     return 1;
 }
+
+void guiManageCheats(void)
+{
+    int terminate = 0;
+    int selectedCheat = 0;
+    int cheatCount = 0;
+
+    const u32 *cheatList = GetCheatsList();
+    const char(*cheatNames)[MAX_CHEAT_NAME_LENGTH] = GetCheatsNames();
+
+    while (cheatList[cheatCount] != 0 || cheatList[cheatCount + 1] != 0)
+        cheatCount += 3;
+
+    sfxPlay(SFX_MESSAGE);
+
+    while (!terminate) {
+        guiStartFrame();
+
+        readPads();
+
+        if (getKeyOn(KEY_UP) && selectedCheat > 0)
+            selectedCheat -= 3;
+
+        if (getKeyOn(KEY_DOWN) && selectedCheat < cheatCount - 3)
+            selectedCheat += 3;
+
+        // Toggle cheat enabled state
+        if (getKeyOn(gSelectButton)) {
+            u32 *modifiableCheatList = (u32 *)cheatList;
+            int enabledFlag = modifiableCheatList[selectedCheat + 2];
+            modifiableCheatList[selectedCheat + 2] = !enabledFlag;
+        }
+
+        if (getKeyOn(KEY_START))
+            terminate = 1;
+
+        guiShow();
+
+        rmDrawRect(0, 0, screenWidth, screenHeight, gColDarker);
+
+        // Draw cheats list
+        for (int i = 0; i < cheatCount; i += 3) {
+            int enabled = cheatList[i + 2];
+
+            u32 textColour = gTheme->textColor;
+            int alpha = (enabled) ? 0x80 : 0x40; // Full alpha if enabled.. half if disabled
+            textColour = (textColour & 0xFFFFFF00) | alpha;
+
+            u32 selTextColour = gTheme->selTextColor;
+            if (i == selectedCheat) {
+                selTextColour = (selTextColour & 0xFFFFFF00) | alpha;
+                fntRenderString(gTheme->fonts[0], 50, 100 + (i / 3) * 30, ALIGN_LEFT, 0, 0, cheatNames[i / 3], selTextColour);
+            } else
+                fntRenderString(gTheme->fonts[0], 50, 100 + (i / 3) * 30, ALIGN_LEFT, 0, 0, cheatNames[i / 3], textColour);
+        }
+
+        guiDrawIconAndText(gSelectButton == KEY_CIRCLE ? CIRCLE_ICON : CROSS_ICON, _STR_ACCEPT, gTheme->fonts[0], 70, 417, gTheme->selTextColor);
+        guiDrawIconAndText(START_ICON, _STR_RUN, gTheme->fonts[0], 500, 417, gTheme->selTextColor);
+
+        guiEndFrame();
+    }
+
+    sfxPlay(SFX_CONFIRM);
+}

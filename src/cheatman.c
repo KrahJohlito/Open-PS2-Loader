@@ -30,6 +30,7 @@ static int gEnableCheat; // Enables PS2RD Cheat Engine - 0 for Off, 1 for On
 static int gCheatMode;   // Cheat Mode - 0 Enable all cheats, 1 Cheats selected by user
 
 static u32 gCheatList[MAX_CHEATLIST]; // Store hooks/codes addr+val pairs
+static char cheatNames[MAX_CHEATLIST / 3][MAX_CHEAT_NAME_LENGTH];
 
 void InitCheatsConfig(config_set_t *configSet)
 {
@@ -61,6 +62,11 @@ int GetCheatsEnabled(void)
 const u32 *GetCheatsList(void)
 {
     return gCheatList;
+}
+
+const char (*GetCheatsNames(void))[MAX_CHEAT_NAME_LENGTH]
+{
+    return cheatNames;
 }
 
 /*
@@ -260,7 +266,7 @@ static int parse_buf(const char *buf)
 
         if (!is_empty_substr(buf, len)) {
             strncpy(line, buf, len);
-            line[len] = NUL;
+            line[len] = 0;
 
             /* Screener */
             term_str(line, is_cmt_str);
@@ -273,6 +279,11 @@ static int parse_buf(const char *buf)
                 i++;
                 gCheatList[i] = code.val;
                 i++;
+                gCheatList[i] = 1;
+                i++;
+
+                strncpy(cheatNames[i / 3 - 1], line, MAX_CHEAT_NAME_LENGTH);
+                cheatNames[i / 3 - 1][MAX_CHEAT_NAME_LENGTH - 1] = 0;
             }
         }
         linenumber++;
@@ -280,8 +291,7 @@ static int parse_buf(const char *buf)
     }
 
     gCheatList[i] = 0;
-    i++;
-    gCheatList[i] = 0;
+    gCheatList[i + 1] = 0;
 
     return 0;
 }
@@ -304,15 +314,23 @@ static inline char *read_text_file(const char *filename, int maxsize)
     }
 
     filesize = lseek(fd, 0, SEEK_END);
-    if (maxsize && filesize > maxsize) {
+    if (filesize < 0) {
+        LOG("%s: Can't seek in text file %s\n", __FUNCTION__, filename);
+        close(fd);
+        return NULL;
+    }
+
+    if (maxsize > 0 && filesize > maxsize) {
         LOG("%s: Text file too large: %i bytes, max: %i bytes\n", __FUNCTION__, filesize, maxsize);
-        goto end;
+        close(fd);
+        return NULL;
     }
 
     buf = malloc(filesize + 1);
     if (buf == NULL) {
         LOG("%s: Unable to allocate %i bytes\n", __FUNCTION__, filesize + 1);
-        goto end;
+        close(fd);
+        return NULL;
     }
 
     if (filesize > 0) {
@@ -320,14 +338,14 @@ static inline char *read_text_file(const char *filename, int maxsize)
         if (read(fd, buf, filesize) != filesize) {
             LOG("%s: Can't read from text file %s\n", __FUNCTION__, filename);
             free(buf);
-            buf = NULL;
-            goto end;
+            close(fd);
+            return NULL;
         }
     }
 
     buf[filesize] = '\0';
-end:
     close(fd);
+
     return buf;
 }
 
@@ -350,8 +368,6 @@ int load_cheats(const char *cheatfile)
     LOG("Ok!\n");
     ret = parse_buf(buf);
     free(buf);
-    if (ret < 0)
-        return -1;
-    else
-        return 0;
+
+    return (gCheatMode == 0) ? 0 : 1;
 }
