@@ -236,21 +236,12 @@ int hddDetectNonSonyFileSystem()
     }
 
     // Check for APAJ signature at address 0xED first.
-    u64 magicNumber = *(u64 *)&pSectorData[0xED];
-    switch (magicNumber) {
-        case 0x4150414A2D410000: // APAJ-A
-        case 0x4150414A2D413200: // APAJ-A2
-        case 0x4150414A2D420000: // APAJ-B
-        case 0x4150414A2D423200: // APAJ-B2
-        case 0x4150414A2D430000: // APAJ-C
-        case 0x4150414A2D433200: // APAJ-C2
-            LOG("hddDetectNonSonyFileSystem: found APAJ partition data\n");
-            gAPAJailDetected = 1;
-            free(pSectorData);
-            return 2;
-        default:
-            // No APAJ signature.. continue with other checks.
-            break;
+    if (strncmp((const char *)&pSectorData[0xED], "APAJ", 4) == 0 && (pSectorData[0xF1] == 'A' || pSectorData[0xF1] == 'B' || pSectorData[0xF1] == 'C')
+        && (pSectorData[0xF2] == '-') && (pSectorData[0xF3] == 'A' || pSectorData[0xF3] == '2' || pSectorData[0xF3] == 'B' || pSectorData[0xF3] == 'C')) {
+
+        LOG("hddDetectNonSonyFileSystem: found APAJ partition data\n");
+        free(pSectorData);
+        return 2; // Indicate APAJ detected
     }
 
     // If APAJ was not detected.. proceed with other checks.
