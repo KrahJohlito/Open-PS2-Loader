@@ -214,7 +214,7 @@ void hddLoadModules(void)
     LOG("HDDSUPPORT LoadModules done\n");
 }
 
-// Returns 1 for MBR/GPT, 0 for APA, 2 for APAJ, and -1 if an error occurred
+// Returns 1 for MBR/GPT/APAJ, 0 for APA, and -1 if an error occurred
 int hddDetectNonSonyFileSystem()
 {
     int result = -1;
@@ -236,17 +236,10 @@ int hddDetectNonSonyFileSystem()
     }
 
     // Check for APAJ signature at address 0xED first.
-    if (strncmp((const char *)&pSectorData[0xED], "APAJ", 4) == 0 && (pSectorData[0xF1] == 'A' || pSectorData[0xF1] == 'B' || pSectorData[0xF1] == 'C')
-        && (pSectorData[0xF2] == '-') && (pSectorData[0xF3] == 'A' || pSectorData[0xF3] == '2' || pSectorData[0xF3] == 'B' || pSectorData[0xF3] == 'C')) {
-
+    if (strncmp((const char *)&pSectorData[0xED], "APAJ", 4) == 0) {
         LOG("hddDetectNonSonyFileSystem: found APAJ partition data\n");
-        free(pSectorData);
-        return 2; // Indicate APAJ detected
-    }
-
-    // If APAJ was not detected.. proceed with other checks.
-    // Check for MBR signature.
-    if (pSectorData[0x1FE] == 0x55 && pSectorData[0x1FF] == 0xAA) {
+        result = 1;
+    } else if (pSectorData[0x1FE] == 0x55 && pSectorData[0x1FF] == 0xAA) {
         // Found MBR partition type.
         LOG("hddDetectNonSonyFileSystem: found MBR partition data\n");
         result = 1;
