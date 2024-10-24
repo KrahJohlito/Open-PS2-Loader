@@ -596,6 +596,15 @@ void submenuSort(submenu_list_t **submenu)
         }
     }
 
+    submenu_list_t *current = head;
+    int i = 1;
+
+    while (current != NULL) {
+        current->index = i;
+        current = current->next;
+        i++;
+    }
+
     *submenu = head;
 }
 

@@ -27,6 +27,7 @@ typedef struct submenu_item
 typedef struct submenu_list
 {
     struct submenu_item item;
+    int index;
 
     struct submenu_list *prev, *next;
 } submenu_list_t;
