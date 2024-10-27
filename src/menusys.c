@@ -88,9 +88,9 @@ static void menuRenameGame(submenu_list_t **submenu)
     if (!gEnableWrite)
         return;
 
-    item_list_t *support = selected_item->item->userdata;
+    item_list_t *menuSupportRename = selected_item->item->userdata;
 
-    if (support != NULL && support->mode == FAV_MODE) {
+    if (menuSupportRename != NULL && menuSupportRename->mode == FAV_MODE) {
         char text[128];
 
         snprintf(text, sizeof(text), _l(_STR_FAV_MSG), _l(_STR_RENAME));
@@ -98,11 +98,11 @@ static void menuRenameGame(submenu_list_t **submenu)
         return;
     }
 
-    if (support) {
-        if (support->itemRename) {
+    if (menuSupportRename) {
+        if (menuSupportRename->itemRename) {
             if (menuCheckParentalLock() == 0) {
                 sfxPlay(SFX_MESSAGE);
-                int nameLength = support->itemGetNameLength(support, selected_item->item->current->item.id);
+                int nameLength = menuSupportRename->itemGetNameLength(menuSupportRename, selected_item->item->current->item.id);
                 char newName[nameLength];
                 strncpy(newName, selected_item->item->current->item.text, nameLength);
                 if (guiShowKeyboard(newName, nameLength)) {
@@ -112,8 +112,8 @@ static void menuRenameGame(submenu_list_t **submenu)
                     // Only rename the file if the name changed; trying to rename a file with a file name that hasn't changed can cause the file
                     // to be deleted on certain file systems.
                     if (strcmp(newName, selected_item->item->current->item.text) != 0) {
-                        support->itemRename(support, selected_item->item->current->item.id, newName);
-                        ioPutRequest(IO_MENU_UPDATE_DEFFERED, &support->mode);
+                        menuSupportRename->itemRename(menuSupportRename, selected_item->item->current->item.id, newName);
+                        ioPutRequest(IO_MENU_UPDATE_DEFFERED, &menuSupportRename->mode);
                     }
                 }
             }
@@ -130,9 +130,9 @@ static void menuDeleteGame(submenu_list_t **submenu)
     if (!gEnableWrite)
         return;
 
-    item_list_t *support = selected_item->item->userdata;
+    item_list_t *menuSupportDelete = selected_item->item->userdata;
 
-    if (support != NULL && support->mode == FAV_MODE) {
+    if (menuSupportDelete != NULL && menuSupportDelete->mode == FAV_MODE) {
         char text[128];
 
         snprintf(text, sizeof(text), _l(_STR_FAV_MSG), _l(_STR_DELETE));
@@ -140,14 +140,14 @@ static void menuDeleteGame(submenu_list_t **submenu)
         return;
     }
 
-    if (support) {
-        if (support->itemDelete) {
+    if (menuSupportDelete) {
+        if (menuSupportDelete->itemDelete) {
             if (menuCheckParentalLock() == 0) {
                 if (guiMsgBox(_l(_STR_DELETE_WARNING), 1, NULL)) {
                     guiSwitchScreen(GUI_SCREEN_MAIN);
                     submenuDestroy(submenu);
-                    support->itemDelete(support, selected_item->item->current->item.id);
-                    ioPutRequest(IO_MENU_UPDATE_DEFFERED, &support->mode);
+                    menuSupportDelete->itemDelete(menuSupportDelete, selected_item->item->current->item.id);
+                    ioPutRequest(IO_MENU_UPDATE_DEFFERED, &menuSupportDelete->mode);
                 }
             }
         }
@@ -1010,6 +1010,7 @@ void menuHandleInputMain()
         guiSwitchScreen(GUI_SCREEN_MENU);
     } else if (getKeyOn(KEY_SELECT)) {
         selected_item->item->refresh(selected_item->item);
+        // clang-format off
     } else if (getKey(KEY_L1)) {
         menuPrevPage();
     } else if (getKey(KEY_R1)) {
@@ -1021,6 +1022,7 @@ void menuHandleInputMain()
     } else if (getKeyOn(KEY_R3)) {
         selected_item->item->fav(selected_item->item);
     }
+    // clang-format on
 
     // Last Played Auto Start
     if (RemainSecs < 0) {
@@ -1061,6 +1063,7 @@ void menuHandleInputInfo()
             guiSwitchScreen(GUI_SCREEN_MAIN);
         else
             selected_item->item->execCircle(selected_item->item);
+        // clang-format off
     } else if (getKey(KEY_L1)) {
         menuPrevPage();
     } else if (getKey(KEY_R1)) {
@@ -1070,6 +1073,7 @@ void menuHandleInputInfo()
     } else if (getKeyOn(KEY_R2)) {
         menuLastPage();
     }
+    // clang-format on
 }
 
 void menuRenderGameMenu()
