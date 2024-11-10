@@ -7,12 +7,12 @@
 
 #include "mcemu.h"
 
+#define U64_2U32(val) ((u32 *)val)[1], ((u32 *)val)[0]
+
 int DeviceWritePage(int mc_num, void *buf, u32 page_num)
 {
-    u32 lba;
-
-    lba = vmcSpec[mc_num].stsec + page_num;
-    DPRINTF("writing page 0x%lx at lba 0x%lx\n", page_num, lba);
+    u64 lba = vmcSpec[mc_num].stsec + page_num;
+    DPRINTF("writing page 0x%lx at lba 0x%08x%08x\n", page_num, U64_2U32(&lba));
 
     bdm_writeSector(lba, 1, buf);
 
@@ -21,10 +21,8 @@ int DeviceWritePage(int mc_num, void *buf, u32 page_num)
 
 int DeviceReadPage(int mc_num, void *buf, u32 page_num)
 {
-    u32 lba;
-
-    lba = vmcSpec[mc_num].stsec + page_num;
-    DPRINTF("reading page 0x%lx at lba 0x%lx\n", page_num, lba);
+    u64 lba = vmcSpec[mc_num].stsec + page_num;
+    DPRINTF("reading page 0x%lx at lba 0x%08x%08x\n", page_num, U64_2U32(&lba));
 
     bdm_readSector(lba, 1, buf);
 
