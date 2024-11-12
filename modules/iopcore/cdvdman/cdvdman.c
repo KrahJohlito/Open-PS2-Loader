@@ -104,7 +104,7 @@ static void oplShutdown(int poff)
     if (poff) {
         DeviceStop();
 #ifdef __USE_DEV9
-        Dev9CardStop();
+        dev9Shutdown();
 #endif
         sceCdPowerOff(&stat);
     }
