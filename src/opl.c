@@ -505,6 +505,7 @@ int oplGetAppImage(const char *device, char *folder, int isRelative, char *value
 static int scanApps(int (*callback)(const char *path, config_set_t *appConfig, void *arg), void *arg, char *appsPath, int exception)
 {
     struct dirent *pdirent;
+    struct stat st;
     DIR *pdir;
     int count, ret;
     config_set_t *appConfig;
@@ -521,7 +522,9 @@ static int scanApps(int (*callback)(const char *path, config_set_t *appConfig, v
                 continue;
 
             snprintf(dir, sizeof(dir), "%s/%s", appsPath, pdirent->d_name);
-            if (pdirent->d_type != DT_DIR)
+            if (stat(dir, &st) < 0)
+                continue;
+            if (!S_ISDIR(st.st_mode))
                 continue;
 
             snprintf(path, sizeof(path), "%s/%s", dir, APP_TITLE_CONFIG_FILE);
