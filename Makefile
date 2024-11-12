@@ -377,7 +377,7 @@ $(EE_BIN_STRIPPED): $(EE_BIN)
 
 $(EE_BIN_PACKED): $(EE_BIN_STRIPPED)
 	echo "Compressing..."
-	ps2-packer $< $@ > /dev/null
+	ps2-packer -s $(PS2PACKERSTUBPATH)/lzma-1d00-stub opl_stripped.elf OPNPS2LD.ELF > /dev/null
 
 $(EE_VPKD).ELF: $(EE_BIN_PACKED)
 	cp -f $< $@
