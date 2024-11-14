@@ -199,7 +199,7 @@ void guiEndFrame(void)
 
 void guiShowAbout()
 {
-    char OPLVersion[40];
+    char OPLVersion[48];
     char OPLBuildDetails[40];
 
     snprintf(OPLVersion, sizeof(OPLVersion), "Open PS2 Loader %s", OPL_VERSION);
