@@ -464,12 +464,15 @@ static unsigned int sendIrxKernelRAM(const char *startup, const char *mode_str, 
     irxtab_t *irxtable;
     irxptr_t *irxptr_tab;
     void *irxptr, *ioprp_image;
-    int i, modcount;
+    int i, modcount, devId = 0;
     unsigned int curIrxSize, size_ioprp_image, total_size;
 
-    if (!strcmp(mode_str, "BDM_USB_MODE"))
+    if (!strcmp(mode_str, "BDM_USB_MODE0"))
         modules |= CORE_IRX_USB;
-    else if (!strcmp(mode_str, "BDM_ILK_MODE"))
+    else if (!strcmp(mode_str, "BDM_USB_MODE1")) {
+        modules |= CORE_IRX_USB;
+        devId = 1;
+    } else if (!strcmp(mode_str, "BDM_ILK_MODE"))
         modules |= CORE_IRX_ILINK;
     else if (!strcmp(mode_str, "BDM_M4S_MODE"))
         modules |= CORE_IRX_MX4SIO;
@@ -509,8 +512,13 @@ static unsigned int sendIrxKernelRAM(const char *startup, const char *mode_str, 
         irxptr_tab[modcount++].ptr = (void *)&usbd_irx;
     }
     if (modules & CORE_IRX_USB) {
-        irxptr_tab[modcount].info = size_usbmass_bd_irx | SET_OPL_MOD_ID(OPL_MODULE_ID_USBMASSBD);
-        irxptr_tab[modcount++].ptr = (void *)&usbmass_bd_irx;
+        if (devId) {
+            irxptr_tab[modcount].info = size_usbmass_bd_irx | SET_OPL_MOD_ID(OPL_MODULE_ID_USBMASSBD);
+            irxptr_tab[modcount++].ptr = (void *)&usbmass_bd_irx;
+        } else {
+            irxptr_tab[modcount].info = size_usbmass_bd_single_irx | SET_OPL_MOD_ID(OPL_MODULE_ID_USBMASSBD);
+            irxptr_tab[modcount++].ptr = (void *)&usbmass_bd_single_irx;
+        }
     }
     if (modules & CORE_IRX_ILINK) {
         irxptr_tab[modcount].info = size_iLinkman_irx | SET_OPL_MOD_ID(OPL_MODULE_ID_ILINK);
