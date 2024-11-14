@@ -76,7 +76,7 @@ FRONTEND_OBJS = pad.o xparam.o fntsys.o renderman.o menusys.o OSDHistory.o syste
 		appsupport.o favsupport.o gui.o guigame.o textures.o opl.o atlas.o nbns.o httpclient.o gsm.o cheatman.o sound.o ps2cnf.o
 
 IOP_OBJS =	iomanx.o filexio.o ps2fs.o usbd.o bdmevent.o \
-		bdm.o bdmfs_fatfs.o usbmass_bd.o iLinkman.o IEEE1394_bd.o mx4sio_bd.o \
+		bdm.o bdmfs_fatfs.o usbmass_bd.o usbmass_bd_single.o iLinkman.o IEEE1394_bd.o mx4sio_bd.o \
 		ps2atad.o hdpro_atad.o poweroff.o ps2hdd.o xhdd.o genvmc.o lwnbdsvr.o \
 		ps2dev9.o smsutils.o ps2ip.o smap.o isofs.o nbns-iop.o \
 		sio2man.o padman.o mcman.o mcserv.o \
@@ -554,6 +554,9 @@ ifeq ($(DEBUG),1)
 $(EE_ASM_DIR)usbmass_bd.c: $(PS2SDK)/iop/irx/usbmass_bd.irx | $(EE_ASM_DIR)
 	$(BIN2C) $< $@ $(*F)_irx
 
+$(EE_ASM_DIR)usbmass_bd_single.c: modules/usbmass_bd_single.irx | $(EE_ASM_DIR)
+	$(BIN2C) $< $@ $(*F)_irx
+
 $(EE_ASM_DIR)IEEE1394_bd.c: $(PS2SDK)/iop/irx/IEEE1394_bd.irx | $(EE_ASM_DIR)
 	$(BIN2C) $< $@ $(*F)_irx
 
@@ -562,6 +565,9 @@ $(EE_ASM_DIR)mx4sio_bd.c: $(PS2SDK)/iop/irx/mx4sio_bd.irx | $(EE_ASM_DIR)
 else
 # block device drivers without printf's
 $(EE_ASM_DIR)usbmass_bd.c: $(PS2SDK)/iop/irx/usbmass_bd_mini.irx | $(EE_ASM_DIR)
+	$(BIN2C) $< $@ $(*F)_irx
+
+$(EE_ASM_DIR)usbmass_bd_single.c: modules/usbmass_bd_mini_single.irx | $(EE_ASM_DIR)
 	$(BIN2C) $< $@ $(*F)_irx
 
 $(EE_ASM_DIR)IEEE1394_bd.c: $(PS2SDK)/iop/irx/IEEE1394_bd_mini.irx | $(EE_ASM_DIR)
