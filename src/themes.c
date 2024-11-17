@@ -1299,13 +1299,13 @@ static void thmLoadFonts(config_set_t *themeConfig, const char *themePath, theme
             theme->fonts[fntID] = theme->fonts[0];
         }
 
-        char fullPath[128];
         const char *fntFile;
         if (configGetStr(themeConfig, fntKey, &fntFile)) {
-            snprintf(fullPath, sizeof(fullPath), "%s%s", themePath, fntFile);
-
+            char fullPath[128];
             int fontSize;
             char sizeKey[64];
+            int fntHandle = FNT_ERROR;
+
             if (fntID == 0)
                 snprintf(sizeKey, sizeof(sizeKey), "default_font_size");
             else
@@ -1314,7 +1314,12 @@ static void thmLoadFonts(config_set_t *themeConfig, const char *themePath, theme
             if (!configGetInt(themeConfig, sizeKey, &fontSize) || fontSize <= 0)
                 fontSize = FNTSYS_DEFAULT_SIZE;
 
-            int fntHandle = fntLoadFile(fullPath, fontSize);
+            if (themePath) {
+                snprintf(fullPath, sizeof(fullPath), "%s%s", themePath, fntFile);
+                fntHandle = fntLoadFile(fullPath, fontSize);
+            } else
+                fntHandle = fntLoadFile(NULL, fontSize);
+
             // Do we have a valid font? Assign the font handle to the theme font slot
             if (fntHandle != FNT_ERROR)
                 theme->fonts[fntID] = fntHandle;
@@ -1386,8 +1391,7 @@ static void thmLoad(const char *themePath, int themeID)
 
     // before loading the element definitions, we have to have the fonts prepared
     // for that, we load the fonts and a translation table
-    if (themePath)
-        thmLoadFonts(themeConfig, themePath, newT);
+    thmLoadFonts(themeConfig, themePath, newT);
 
     int i = 1, j;
     snprintf(path, sizeof(path), "main0");
