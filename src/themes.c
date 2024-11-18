@@ -946,6 +946,9 @@ int animationDirection = 0; // 1 for right (next), -1 for left (prev)
 
 static void drawCoverFlow(struct menu_list *menu, struct submenu_list *item, config_set_t *config, struct theme_element *elem)
 {
+    if (item == NULL)
+        return;
+
     int coverSpacing = 0;
     int coverHeight = elem->height;
     int coverWidth = gWideScreen ? rmWideScale(elem->width) : elem->width;
