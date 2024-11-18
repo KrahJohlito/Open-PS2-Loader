@@ -699,6 +699,9 @@ static void menuNextV()
         selected_item->item->current = cur->next;
         sfxPlay(SFX_CURSOR);
 
+        isAnimating = 1;
+        animationDirection = 1;
+
         // if the current item is beyond the page start, move the page start one page down
         cur = selected_item->item->pagestart;
         int itms = ((items_list_t *)gTheme->itemsList->extended)->displayedItems + 1;
@@ -721,6 +724,9 @@ static void menuPrevV()
     if (cur && cur->prev) {
         selected_item->item->current = cur->prev;
         sfxPlay(SFX_CURSOR);
+
+        isAnimating = 1;
+        animationDirection = -1;
 
         // if the current item is on the page start, move the page start one page up
         if (selected_item->item->pagestart == cur) {
