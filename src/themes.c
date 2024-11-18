@@ -941,6 +941,9 @@ static void drawInfoHintText(struct menu_list *menu, struct submenu_list *item, 
     x = guiDrawIconAndText(gSelectButton == KEY_CIRCLE ? infoIcons[1] : infoIcons[0], infoHints[1], elem->font, x, elem->posY, elem->color);
 }
 
+int isAnimating = 0;        // Animation flag
+int animationDirection = 0; // 1 for right (next), -1 for left (prev)
+
 void drawCoverFlow(struct menu_list *menu, struct submenu_list *item, config_set_t *config, struct theme_element *elem)
 {
     int coverHeight = 254;
@@ -950,6 +953,9 @@ void drawCoverFlow(struct menu_list *menu, struct submenu_list *item, config_set
     int posX = (screenWidth >> 1) - (coverWidth + coverSpacing);
     u64 Col = GS_SETREG_RGBA(0x80, 0x80, 0x80, 0x20);
 
+    float animationProgress = 0.0f; // Progress of animation (0.0 - 1.0)
+    float animationSpeed = 0.05f;   // Speed of animation
+
     submenu_list_t *game[COVERFLOW_COUNT] = {NULL};
     mutable_image_t *gameCover[COVERFLOW_COUNT];
     GSTEXTURE *texture[COVERFLOW_COUNT];
@@ -957,6 +963,15 @@ void drawCoverFlow(struct menu_list *menu, struct submenu_list *item, config_set
     game[0] = item->prev;
     game[1] = item;
     game[2] = item->next;
+
+    if (isAnimating) {
+        posX += animationDirection * (animationProgress * coverDistance);
+        animationProgress += animationSpeed;
+        if (animationProgress >= 1.0f) {
+            isAnimating = 0;
+            animationProgress = 0.0f;
+        }
+    }
 
     for (int i = 0; i < COVERFLOW_COUNT; i++) {
         posX += coverDistance;
