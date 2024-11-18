@@ -944,13 +944,23 @@ static void drawInfoHintText(struct menu_list *menu, struct submenu_list *item, 
 int isAnimating = 0;        // Animation flag
 int animationDirection = 0; // 1 for right (next), -1 for left (prev)
 
-void drawCoverFlow(struct menu_list *menu, struct submenu_list *item, config_set_t *config, struct theme_element *elem)
+static void drawCoverFlow(struct menu_list *menu, struct submenu_list *item, config_set_t *config, struct theme_element *elem)
 {
-    int coverHeight = 254;
-    int coverWidth = gWideScreen ? rmWideScale(184) : 184;
-    int coverSpacing = gWideScreen ? rmWideScale(76) : 24;
+    int coverSpacing = 0;
+    int coverHeight = elem->height;
+    int coverWidth = gWideScreen ? rmWideScale(elem->width) : elem->width;
+    int totalCoversWidth = COVERFLOW_COUNT * coverWidth;
+    int totalRemainingSpace = screenWidth - totalCoversWidth;
+
+    if (totalRemainingSpace >= 0) {
+        coverSpacing = totalRemainingSpace / 4; // Divide by 4 to distribute the space equally (2 spaces between covers + 2 on the sides)
+        // If coverSpacing ends up negative set it to a minimum value
+        if (coverSpacing < 0)
+            coverSpacing = 0;
+    }
+
     int coverDistance = 0;
-    int posX = (screenWidth >> 1) - (coverWidth + coverSpacing);
+    int posX = coverSpacing + (coverWidth >> 1);
     u64 Col = GS_SETREG_RGBA(0x80, 0x80, 0x80, 0x20);
 
     float animationProgress = 0.0f; // Progress of animation (0.0 - 1.0)
