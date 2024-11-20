@@ -1100,7 +1100,7 @@ static void guiDrawBusy(int alpha)
     }
 }
 
-static void guiRenderGreeting(int alpha)
+/*static void guiRenderGreeting(int alpha)
 {
     u64 mycolor = GS_SETREG_RGBA(0x1C, 0x1C, 0x1C, alpha);
     rmDrawRect(0, 0, screenWidth, screenHeight, mycolor);
@@ -1109,6 +1109,36 @@ static void guiRenderGreeting(int alpha)
     if (logo) {
         mycolor = GS_SETREG_RGBA(0x80, 0x80, 0x80, alpha);
         rmDrawPixmap(logo, screenWidth >> 1, gTheme->usedHeight >> 1, ALIGN_CENTER, logo->Width, logo->Height, SCALING_RATIO, mycolor);
+    }
+}*/
+
+static void guiRenderGreeting(int alpha)
+{
+    static int currentFrame = 0;
+    static clock_t lastFrameTime = 0;
+
+    u64 mycolor = GS_SETREG_RGBA(0x1C, 0x1C, 0x1C, alpha);
+    rmDrawRect(0, 0, screenWidth, screenHeight, mycolor);
+
+    GSTEXTURE *logo = thmGetTexture(LOGO_PICTURE);
+    if (logo) {
+        mycolor = GS_SETREG_RGBA(0x80, 0x80, 0x80, alpha);
+
+        if (pngTexture.numFrames > 1) { // APNG
+            clock_t currentTime = clock();
+            int frameDuration = pngTexture.frameDelays[currentFrame]; // Get delay for current frame in ms
+
+            // If enough time has passed.. move to the next frame
+            if ((currentTime - lastFrameTime) >= (frameDuration * CLOCKS_PER_SEC / 1000)) {
+                currentFrame = (currentFrame + 1) % pngTexture.numFrames;
+                lastFrameTime = currentTime;
+            }
+
+            // Draw the current frame
+            GSTEXTURE *frameTexture = &pngTexture.frames[currentFrame];
+            rmDrawPixmap(frameTexture, screenWidth >> 1, gTheme->usedHeight >> 1, ALIGN_CENTER, frameTexture->Width, frameTexture->Height, SCALING_RATIO, mycolor);
+        } else
+            rmDrawPixmap(logo, screenWidth >> 1, gTheme->usedHeight >> 1, ALIGN_CENTER, logo->Width, logo->Height, SCALING_RATIO, mycolor);
     }
 }
 

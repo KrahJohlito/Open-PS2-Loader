@@ -1,6 +1,8 @@
 #ifndef __TEXTURES_H
 #define __TEXTURES_H
 
+#include <png.h>
+
 enum INTERNAL_TEXTURE {
     LOAD0_ICON = 0,
     LOAD1_ICON,
@@ -109,5 +111,19 @@ int texLookupInternalTexId(const char *name);
 int texLoadInternal(GSTEXTURE *texture, int texId);
 int texDiscoverLoad(GSTEXTURE *texture, const char *path, int texId);
 void texFree(GSTEXTURE *texture);
+
+typedef struct
+{
+    png_colorp palette;
+    int numPalette;
+    int numTrans;
+    png_bytep trans;
+
+    int numFrames;     // Number of frames in the APNG
+    int *frameDelays;  // Frame delays in milliseconds
+    GSTEXTURE *frames; // Pointer array to store frame data
+} png_texture_t;
+
+extern png_texture_t pngTexture;
 
 #endif
