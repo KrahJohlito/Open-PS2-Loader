@@ -175,6 +175,7 @@ int gPadMacroSettings;
 int gScrollSpeed;
 char gExitPath[256];
 int gEnableDebug;
+int gBDMDebug;
 int gPS2Logo;
 int gDefaultDevice;
 int gEnableWrite;
@@ -1070,6 +1071,7 @@ static void _loadConfig()
             configGetInt(configOPL, CONFIG_OPL_XSENSITIVITY, &gXSensitivity);
             configGetInt(configOPL, CONFIG_OPL_YSENSITIVITY, &gYSensitivity);
             configGetInt(configOPL, CONFIG_OPL_DISABLE_DEBUG, &gEnableDebug);
+            configGetInt(configOPL, CONFIG_OPL_BDM_DEBUG, &gBDMDebug);
             configGetInt(configOPL, CONFIG_OPL_PS2LOGO, &gPS2Logo);
             configGetInt(configOPL, CONFIG_OPL_HDD_GAME_LIST_CACHE, &gHDDGameListCache);
             configGetStrCopy(configOPL, CONFIG_OPL_EXIT_PATH, gExitPath, sizeof(gExitPath));
@@ -1228,6 +1230,7 @@ static void _saveConfig()
         configSetInt(configOPL, CONFIG_OPL_YOFF, gYOff);
         configSetInt(configOPL, CONFIG_OPL_OVERSCAN, gOverscan);
         configSetInt(configOPL, CONFIG_OPL_DISABLE_DEBUG, gEnableDebug);
+        configSetInt(configOPL, CONFIG_OPL_BDM_DEBUG, gBDMDebug);
         configSetInt(configOPL, CONFIG_OPL_PS2LOGO, gPS2Logo);
         configSetInt(configOPL, CONFIG_OPL_HDD_GAME_LIST_CACHE, gHDDGameListCache);
         configSetStr(configOPL, CONFIG_OPL_EXIT_PATH, gExitPath);
@@ -1857,6 +1860,7 @@ static void setDefaults(void)
     gAutosort = 1;
     gAutoRefresh = 0;
     gEnableDebug = 0;
+    gBDMDebug = 0;
     gPS2Logo = 0;
     gHDDGameListCache = 0;
     gEnableWrite = 0;

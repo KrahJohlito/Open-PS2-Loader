@@ -333,6 +333,49 @@ int ioPrintf(const char *format, ...)
     return ret;
 }
 
+static int bdReady = 0;
+static int isBDReady(void)
+{
+    if (bdReady)
+        return bdReady;
+
+    DIR *dir = opendir("mass0:/");
+    if (dir) {
+        closedir(dir);
+        bdReady = 1;
+    } else
+        bdReady = 0;
+
+    return bdReady;
+}
+
+void writeLogToBD(const char *format, ...)
+{
+    if (!isBDReady()) {
+        ioPrintf("BD not ready, logging to default output: %s", format);
+        return;
+    }
+
+    if (isIORunning == 1)
+        WaitSema(gIOPrintfSemaId);
+
+    va_list args;
+    char logMessage[512];
+
+    va_start(args, format);
+    vsnprintf(logMessage, sizeof(logMessage), format, args);
+    va_end(args);
+
+    FILE *logFile = fopen("mass0:opllog.txt", "a");
+    if (logFile) {
+        fprintf(logFile, "%s", logMessage);
+        fclose(logFile);
+    }
+
+    if (isIORunning == 1)
+        SignalSema(gIOPrintfSemaId);
+}
+
 int ioBlockOps(int block)
 {
     ee_thread_status_t status;

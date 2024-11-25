@@ -45,6 +45,9 @@ int ioIsRunning(void);
 /** Helper thread safe printf */
 int ioPrintf(const char *format, ...);
 
+/** writes LOG messages to block device */
+void writeLogToBD(const char *format, ...);
+
 /** Helper function. Will flush the io operation list
  (wait for all io ops requested to end) and then
  issue a blocking flag that will mean no io
@@ -53,9 +56,18 @@ int ioPrintf(const char *format, ...);
 */
 int ioBlockOps(int block);
 
+extern int gBDMDebug;
+
 #ifdef __DEBUG
 #define PREINIT_LOG(...) printf(__VA_ARGS__)
-#define LOG(...)         ioPrintf(__VA_ARGS__)
+#define LOG(...)                       \
+    do {                               \
+        if (gBDMDebug) {               \
+            writeLogToBD(__VA_ARGS__); \
+        } else {                       \
+            ioPrintf(__VA_ARGS__);     \
+        }                              \
+    } while (0)
 #else
 #define PREINIT_LOG(...)
 #define LOG(...)

@@ -523,6 +523,9 @@ void guiShowConfig()
     diaSetInt(diaConfig, CFG_SMBCACHE, smbCacheSize);
 
     diaSetInt(diaConfig, CFG_DEBUG, gEnableDebug);
+#ifdef __DEBUG
+    diaSetInt(diaConfig, CFG_BDM_DEBUG, gBDMDebug);
+#endif
     diaSetInt(diaConfig, CFG_PS2LOGO, gPS2Logo);
     diaSetInt(diaConfig, CFG_HDDGAMELISTCACHE, gHDDGameListCache);
     diaSetString(diaConfig, CFG_EXITTO, gExitPath);
@@ -548,6 +551,9 @@ void guiShowConfig()
     int ret = diaExecuteDialog(diaConfig, -1, 1, &guiUpdater);
     if (ret) {
         diaGetInt(diaConfig, CFG_DEBUG, &gEnableDebug);
+#ifdef __DEBUG
+        diaGetInt(diaConfig, CFG_BDM_DEBUG, &gBDMDebug);
+#endif
         diaGetInt(diaConfig, CFG_PS2LOGO, &gPS2Logo);
         diaGetInt(diaConfig, CFG_HDDGAMELISTCACHE, &gHDDGameListCache);
         diaGetString(diaConfig, CFG_EXITTO, gExitPath, sizeof(gExitPath));
