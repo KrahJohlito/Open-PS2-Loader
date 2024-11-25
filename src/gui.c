@@ -233,7 +233,7 @@ void guiCheckNotifications(int checkTheme, int checkLang)
 {
     if (gEnableNotifications) {
         if (checkTheme) {
-            if (thmGetGuiValue() != 0)
+            if (!IS_DEFAULT_THEME(thmGetGuiValue()))
                 showThmPopup = 1;
         }
 
@@ -585,7 +585,7 @@ static int guiUIUpdater(int modified)
         diaGetInt(diaUIConfig, UICFG_THEME, &temp);
         if (temp != curTheme) {
             curTheme = temp;
-            if (temp == 0) {
+            if (IS_DEFAULT_THEME(temp)) {
                 // Display the default theme's colours.
                 diaSetItemType(diaUIConfig, UICFG_BGCOL, UI_COLOUR); // Must be correctly set before doing the diaS/GetColor !!
                 diaSetItemType(diaUIConfig, UICFG_UICOL, UI_COLOUR);
@@ -696,7 +696,7 @@ reselect_video_mode:
     if (ret) {
         diaGetInt(diaUIConfig, UICFG_LANG, &langID);
         diaGetInt(diaUIConfig, UICFG_THEME, &themeID);
-        if (themeID == 0) {
+        if (IS_DEFAULT_THEME(themeID)) {
             diaGetColor(diaUIConfig, UICFG_BGCOL, gDefaultBgColor);
             diaGetColor(diaUIConfig, UICFG_UICOL, gDefaultUITextColor);
             diaGetColor(diaUIConfig, UICFG_TXTCOL, gDefaultTextColor);
