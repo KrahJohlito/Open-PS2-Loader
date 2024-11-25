@@ -1482,7 +1482,7 @@ static void thmRebuildGuiNames(void)
         free(guiThemesNames);
 
     // build the themes name list
-    guiThemesNames = (const char **)malloc((nThemes + 3) * sizeof(char **));
+    guiThemesNames = (const char **)malloc((nThemes + 3) * sizeof(const char *));
 
     // add default internal
     guiThemesNames[0] = "<OPL>";
@@ -1569,13 +1569,13 @@ int thmSetGuiValue(int themeID, int reload)
             if (themeID == 0)
                 thmLoad(NULL, 0); // <OPL>
             else if (themeID == 1)
-                thmLoad(NULL, 1); // <OPL_CF>
+                thmLoad(NULL, 1); // <OPL-CF>
             else if (themeID > 1)
                 thmLoad(themes[themeID - 2].filePath, -1); // Load external themes
 
             guiThemeID = themeID;
             return 1;
-        } else if (guiThemeID == 0)
+        } else if (guiThemeID == 0 || guiThemeID == 1)
             thmSetColors(gTheme);
     }
     return 0;
@@ -1592,10 +1592,11 @@ int thmFindGuiID(const char *theme)
         int i = 0;
         for (; i < nThemes; i++) {
             if (strcasecmp(themes[i].name, theme) == 0)
-                return i + 1;
+                return i + 2;
         }
     }
-    return 0;
+    return (strcasecmp(theme, "<OPL>") == 0) ? 0 : (strcasecmp(theme, "<OPL-CF>") == 0) ? 1 :
+                                                                                          0;
 }
 
 const char **thmGetGuiList(void)
@@ -1605,7 +1606,7 @@ const char **thmGetGuiList(void)
 
 char *thmGetFilePath(int themeID)
 {
-    theme_file_t *currTheme = &themes[themeID - 1];
+    theme_file_t *currTheme = &themes[themeID - 2];
     char *path = currTheme->filePath;
 
     return path;
