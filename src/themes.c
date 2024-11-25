@@ -578,7 +578,7 @@ static void drawAttributeImage(struct menu_list *menu, struct submenu_list *item
             configGetStr(config, attributeImage->cache->suffix, (const char **)&attributeImage->currentValue);
         }
         if (attributeImage->currentValue) {
-            if (thmGetGuiValue() == 0) {
+            if (IS_DEFAULT_THEME(thmGetGuiValue())) {
                 int texId;
                 char *seppos = strchr(attributeImage->currentValue, '/');
                 if (!seppos)
