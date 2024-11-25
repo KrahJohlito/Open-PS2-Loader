@@ -79,6 +79,7 @@ static void cacheClearItem(cache_entry_t *item, int freeTxt)
 image_cache_t *cacheInitCache(int userId, const char *prefix, int isPrefixRelative, const char *suffix, int count)
 {
     image_cache_t *cache = (image_cache_t *)malloc(sizeof(image_cache_t));
+    memset(cache, 0, sizeof(image_cache_t));
     cache->userId = userId;
     cache->count = count;
     cache->prefix = NULL;
@@ -106,6 +107,10 @@ void cacheDestroyCache(image_cache_t *cache)
 {
     int i;
     for (i = 0; i < cache->count; ++i) {
+        if (cache->content[i].qr) {
+            free(cache->content[i].qr);
+            cache->content[i].qr = NULL;
+        }
         cacheClearItem(&cache->content[i], 1);
     }
 
@@ -113,6 +118,11 @@ void cacheDestroyCache(image_cache_t *cache)
     free(cache->suffix);
     free(cache->content);
     free(cache);
+}
+
+void cacheCancelPendingImageLoads(void)
+{
+    ioRemoveRequests(IO_CACHE_LOAD_ART);
 }
 
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value)
