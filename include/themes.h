@@ -8,7 +8,7 @@
 #define THM_MAX_FILES 64
 #define THM_MAX_FONTS 16
 
-#define IS_DEFAULT_THEME(themeID) ((themeID) == 0)
+#define IS_DEFAULT_THEME(themeID) ((themeID) == 0 || (themeID) == 1)
 
 typedef struct
 {
