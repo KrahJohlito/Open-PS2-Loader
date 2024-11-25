@@ -55,6 +55,8 @@ image_cache_t *cacheInitCache(int userId, const char *prefix, int isPrefixRelati
  */
 void cacheDestroyCache(image_cache_t *cache);
 
+void cacheCancelPendingImageLoads(void);
+
 GSTEXTURE *cacheGetTexture(image_cache_t *cache, item_list_t *list, int *cacheId, int *UID, char *value);
 
 #endif

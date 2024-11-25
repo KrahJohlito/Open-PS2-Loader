@@ -407,6 +407,9 @@ static image_texture_t *initImageInternalTexture(config_set_t *themeConfig, cons
 
 static void endMutableImage(struct theme_element *elem)
 {
+    if (!elem)
+        return;
+
     mutable_image_t *mutableImage = (mutable_image_t *)elem->extended;
     if (mutableImage) {
         if (mutableImage->cache && !mutableImage->cacheLinked)
@@ -421,6 +424,9 @@ static void endMutableImage(struct theme_element *elem)
         free(mutableImage);
     }
 
+    elem->extended = NULL;
+    elem->drawElem = NULL;
+    elem->endElem = NULL;
     free(elem);
 }
 
@@ -940,6 +946,8 @@ static void drawInfoHintText(struct menu_list *menu, struct submenu_list *item, 
     x += elem->width;
     x = guiDrawIconAndText(gSelectButton == KEY_CIRCLE ? infoIcons[1] : infoIcons[0], infoHints[1], elem->font, x, elem->posY, elem->color);
 }
+
+// Coverflow ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int isAnimating = 0;        // Animation flag
 int animationDirection = 0; // 1 for right (next), -1 for left (prev)

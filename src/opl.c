@@ -272,6 +272,7 @@ static void itemExecSelect(struct menu_item *curMenu)
         if (support->enabled) {
             if (curMenu->current) {
                 config_set_t *configSet = menuLoadConfig();
+                cacheCancelPendingImageLoads();
                 support->itemLaunch(support, curMenu->current->item.id, configSet);
             }
         } else {
