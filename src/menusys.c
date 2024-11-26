@@ -1018,6 +1018,9 @@ void menuRenderMain(void)
     if (list->mode == APP_MODE) {
         menuRenderElements(gTheme->appsMainElems.first);
         gTheme->itemsList = gTheme->appsItemsList;
+    } else if (list->mode == FAV_MODE) {
+        menuRenderElements(gTheme->favsMainElems.first);
+        gTheme->itemsList = gTheme->favsItemsList;
     } else {
         menuRenderElements(gTheme->mainElems.first);
         gTheme->itemsList = gTheme->gamesItemsList;
@@ -1077,6 +1080,9 @@ void menuRenderInfo(void)
     if (list->mode == APP_MODE) {
         menuRenderElements(gTheme->appsInfoElems.first);
         gTheme->itemsList = gTheme->appsItemsList;
+    } else if (list->mode == FAV_MODE) {
+        menuRenderElements(gTheme->favsInfoElems.first);
+        gTheme->itemsList = gTheme->favsItemsList;
     } else {
         menuRenderElements(gTheme->infoElems.first);
         gTheme->itemsList = gTheme->gamesItemsList;
