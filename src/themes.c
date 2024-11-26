@@ -469,6 +469,8 @@ static mutable_image_t *initMutableImage(const char *themePath, config_set_t *th
     findDuplicate(theme->infoElems.first, cachePattern, defaultTexture, overlayTexture, mutableImage);
     findDuplicate(theme->appsMainElems.first, cachePattern, defaultTexture, overlayTexture, mutableImage);
     findDuplicate(theme->appsInfoElems.first, cachePattern, defaultTexture, overlayTexture, mutableImage);
+    findDuplicate(theme->favsMainElems.first, cachePattern, defaultTexture, overlayTexture, mutableImage);
+    findDuplicate(theme->favsInfoElems.first, cachePattern, defaultTexture, overlayTexture, mutableImage);
 
     if (cachePattern && !mutableImage->cache) {
         if (type == ELEM_TYPE_ATTRIBUTE_IMAGE)
@@ -1087,10 +1089,12 @@ static void validateGUIElems(const char *themePath, config_set_t *themeConfig, t
     // 1. check we have a valid Background elements
     validateBackgroundElems(themePath, themeConfig, theme, &theme->mainElems, &theme->infoElems);
     validateBackgroundElems(themePath, themeConfig, theme, &theme->appsMainElems, &theme->appsInfoElems);
+    validateBackgroundElems(themePath, themeConfig, theme, &theme->favsMainElems, &theme->favsInfoElems);
 
     // 2. check we have a valid ItemsList element, and link its decorator to the target element
     validateItemsList(themePath, themeConfig, theme, theme->gamesItemsList, &theme->mainElems);
     validateItemsList(themePath, themeConfig, theme, theme->appsItemsList, &theme->appsMainElems);
+    validateItemsList(themePath, themeConfig, theme, theme->favsItemsList, &theme->favsMainElems);
 }
 
 static int addGUIElem(const char *themePath, config_set_t *themeConfig, theme_t *theme, theme_elems_t *elems, const char *type, const char *name)
@@ -1141,6 +1145,10 @@ static int addGUIElem(const char *themePath, config_set_t *themeConfig, theme_t 
                     elem = initBasic(themePath, themeConfig, theme, name, ELEM_TYPE_ITEMS_LIST, 42, 42, ALIGN_NONE, 400, 360, SCALING_RATIO, theme->textColor, theme->fonts[0]);
                     initItemsList(themePath, themeConfig, theme, elem, name, NULL);
                     theme->appsItemsList = elem;
+                } else if (!theme->favsItemsList) {
+                    elem = initBasic(themePath, themeConfig, theme, name, ELEM_TYPE_ITEMS_LIST, 42, 42, ALIGN_NONE, 400, 360, SCALING_RATIO, theme->textColor, theme->fonts[0]);
+                    initItemsList(themePath, themeConfig, theme, elem, name, NULL);
+                    theme->favsItemsList = elem;
                 }
             } else if (!strcmp(elementsType[ELEM_TYPE_ITEM_ICON], type)) {
                 elem = initBasic(themePath, themeConfig, theme, name, ELEM_TYPE_GAME_IMAGE, 0, 0, ALIGN_CENTER, 64, 64, SCALING_RATIO, gDefaultCol, theme->fonts[0]);
@@ -1223,6 +1231,8 @@ static void thmFree(theme_t *theme)
         freeGUIElems(&theme->infoElems);
         freeGUIElems(&theme->appsMainElems);
         freeGUIElems(&theme->appsInfoElems);
+        freeGUIElems(&theme->favsMainElems);
+        freeGUIElems(&theme->favsInfoElems);
 
         // free textures
         GSTEXTURE *texture;
@@ -1354,10 +1364,15 @@ static void thmLoad(const char *themePath, int themeID)
     newT->appsMainElems.last = NULL;
     newT->appsInfoElems.first = NULL;
     newT->appsInfoElems.last = NULL;
+    newT->favsMainElems.first = NULL;
+    newT->favsMainElems.last = NULL;
+    newT->favsInfoElems.first = NULL;
+    newT->favsInfoElems.last = NULL;
     newT->gameCacheCount = 0;
     newT->itemsList = NULL;
     newT->gamesItemsList = NULL;
     newT->appsItemsList = NULL;
+    newT->favsItemsList = NULL;
     newT->loadingIcon = NULL;
     newT->loadingIconCount = LOAD7_ICON - LOAD0_ICON + 1;
     newT->coverflow = NULL;
@@ -1417,6 +1432,17 @@ static void thmLoad(const char *themePath, int themeID)
         }
     }
 
+    for (j = 0; j < i; j++) {
+        snprintf(path, sizeof(path), "favsMain%d", j);
+
+        if (addGUIElem(themePath, themeConfig, newT, &newT->favsMainElems, NULL, path))
+            continue;
+        else {
+            snprintf(path, sizeof(path), "main%d", j);
+            addGUIElem(themePath, themeConfig, newT, &newT->favsMainElems, NULL, path);
+        }
+    }
+
     i = 1;
     snprintf(path, sizeof(path), "info0");
     while (addGUIElem(themePath, themeConfig, newT, &newT->infoElems, NULL, path))
@@ -1430,6 +1456,17 @@ static void thmLoad(const char *themePath, int themeID)
         else {
             snprintf(path, sizeof(path), "info%d", j);
             addGUIElem(themePath, themeConfig, newT, &newT->appsInfoElems, NULL, path);
+        }
+    }
+
+    for (j = 0; j < i; j++) {
+        snprintf(path, sizeof(path), "favsInfo%d", j);
+
+        if (addGUIElem(themePath, themeConfig, newT, &newT->favsInfoElems, NULL, path))
+            continue;
+        else {
+            snprintf(path, sizeof(path), "info%d", j);
+            addGUIElem(themePath, themeConfig, newT, &newT->favsInfoElems, NULL, path);
         }
     }
 
