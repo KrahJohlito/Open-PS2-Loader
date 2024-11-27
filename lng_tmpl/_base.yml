@@ -702,3 +702,5 @@ gui_strings:
   string: "%s not allowed through Favourites Menu."
 - label: BDM_DEBUG
   string: BD Debug Log
+- label: CORE_LOADER
+  string: Core

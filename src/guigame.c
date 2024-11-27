@@ -27,6 +27,7 @@
 static int configSourceID;
 static int dmaMode;
 static int compatMode;
+static int coreLoader;
 
 static int EnableGSM;
 static int GSMVMode;
@@ -952,6 +953,9 @@ void guiGameShowCompatConfig(int id, item_list_t *support, config_set_t *configS
         diaSetEnum(diaCompatConfig, COMPAT_DMA, dmaModes);
     }
 
+    const char *loaders[] = {"<OPL>", "Neutrino", NULL};
+    diaSetEnum(diaCompatConfig, COMPAT_LOADER, loaders);
+
     int result = diaExecuteDialog(diaCompatConfig, -1, 1, NULL);
     if (result) {
         compatMode = 0;
@@ -971,6 +975,7 @@ void guiGameShowCompatConfig(int id, item_list_t *support, config_set_t *configS
         if (result == COMPAT_DL_DEFAULTS)
             guiShowNetCompatUpdateSingle(id, support, configSet);
 
+        diaGetInt(diaCompatConfig, COMPAT_LOADER, &coreLoader);
         diaGetInt(diaCompatConfig, COMPAT_DMA, &dmaMode);
         diaGetString(diaCompatConfig, COMPAT_GAMEID, hexid, sizeof(hexid));
         diaGetString(diaCompatConfig, COMPAT_ALTSTARTUP, altStartup, sizeof(altStartup));
@@ -1003,6 +1008,12 @@ int guiGameSaveConfig(config_set_t *configSet, item_list_t *support)
         result = configSetInt(configSet, CONFIG_ITEM_COMPAT, compatMode);
     else
         configRemoveKey(configSet, CONFIG_ITEM_COMPAT);
+
+    diaGetInt(diaCompatConfig, COMPAT_LOADER, &coreLoader);
+    if (coreLoader != 0)
+        result = configSetInt(configSet, CONFIG_ITEM_CORE_LOADER, coreLoader);
+    else
+        configRemoveKey(configSet, CONFIG_ITEM_CORE_LOADER);
 
     /// GSM ///
     diaGetInt(diaGSConfig, GSMCFG_ENABLEGSM, &EnableGSM);
@@ -1128,6 +1139,7 @@ void guiGameRemoveSettings(config_set_t *configSet)
     if (menuCheckParentalLock() == 0) {
         configRemoveKey(configSet, CONFIG_ITEM_CONFIGSOURCE);
         configRemoveKey(configSet, CONFIG_ITEM_DMA);
+        configRemoveKey(configSet, CONFIG_ITEM_CORE_LOADER);
         configRemoveKey(configSet, CONFIG_ITEM_COMPAT);
         configRemoveKey(configSet, CONFIG_ITEM_DNAS);
         configRemoveKey(configSet, CONFIG_ITEM_ALTSTARTUP);
@@ -1458,6 +1470,9 @@ void guiGameLoadConfig(item_list_t *support, config_set_t *configSet)
     configGetInt(configSet, CONFIG_ITEM_COMPAT, &compatMode);
     for (i = 0; i < COMPAT_MODE_COUNT; ++i)
         diaSetInt(diaCompatConfig, COMPAT_MODE_BASE + i, (compatMode & (1 << i)) > 0 ? 1 : 0);
+
+    configGetInt(configSet, CONFIG_ITEM_CORE_LOADER, &coreLoader);
+    diaSetInt(diaCompatConfig, COMPAT_LOADER, coreLoader);
 
     guiGameLoadGSMConfig(configSet, configGame);
 
