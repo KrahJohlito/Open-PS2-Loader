@@ -39,6 +39,7 @@ typedef struct
 
 int isValidIsoName(char *name, int *pNameLen);
 int sbIsSameSize(const char *prefix, int prevSize);
+int sbFileExists(const char *path);
 int sbCreateSemaphore(void);
 int sbReadList(base_game_info_t **list, const char *prefix, int *fsize, int *gamecount);
 int sbPrepare(base_game_info_t *game, config_set_t *configSet, int size_cdvdman, void **cdvdman_irx, int *patchindex);

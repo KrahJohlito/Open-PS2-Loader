@@ -37,6 +37,7 @@ enum CONFIG_INDEX {
 #define CONFIG_ITEM_DMA          "$DMA"
 #define CONFIG_ITEM_DNAS         "$DNAS"
 #define CONFIG_ITEM_CONFIGSOURCE "$ConfigSource"
+#define CONFIG_ITEM_CORE_LOADER  "$CoreLoader"
 
 #define CONFIG_ITEM_OSD_SETTINGS_LANGID "$CustomLanguageValue"
 #define CONFIG_ITEM_OSD_SETTINGS_SOURCE "$CustomLanguageSource"

@@ -1101,3 +1101,72 @@ int sysCheckVMC(const char *prefix, const char *sep, char *name, int createSize,
     }
     return size;
 }
+
+#include <elf-loader.h>
+
+static const char *getDeviceName(const char *driver)
+{
+    if (!strncmp(driver, "usb", 3))
+        return "usb";
+    else if (!strncmp(driver, "sd", 2))
+        return "ilink";
+    else if (!strncmp(driver, "sdc", 3))
+        return "mx4sio";
+    else if (!strncmp(driver, "ata", 3))
+        return "ata";
+    else
+        return "unsupported";
+}
+
+static int convertCompatmaskToModes(int compatmask)
+{
+    char result[8];
+    int pos = 0;
+
+    if (compatmask & COMPAT_MODE_1)
+        result[pos++] = '1';
+
+    if (compatmask & COMPAT_MODE_2)
+        result[pos++] = '2';
+
+    if (compatmask & COMPAT_MODE_3)
+        result[pos++] = '3';
+
+    if (compatmask & COMPAT_MODE_5)
+        result[pos++] = '5';
+
+    if (compatmask & COMPAT_MODE_7)
+        result[pos++] = '7';
+
+    result[pos] = '\0';
+
+    return atoi(result);
+}
+
+void sysLaunchNeutrino(const char *driver, const char *path, int compatmask, int EnablePS2Logo, const char *neutrinoPath)
+{
+    char device[64];
+    char filePath[256];
+    char compatModes[64];
+    char *argv[5];
+    int argc = 0;
+
+    snprintf(device, sizeof(device), "-bsd=%s", getDeviceName(driver));
+    argv[argc++] = device;
+
+    snprintf(filePath, sizeof(filePath), "-dvd=%s", path);
+    argv[argc++] = filePath;
+
+    snprintf(compatModes, sizeof(compatModes), "-gc=%d", convertCompatmaskToModes(compatmask));
+    argv[argc++] = compatModes;
+
+    LOG("COMPAT MODE ARG=%s\n", compatModes);
+
+    if (gEnableDebug)
+        argv[argc++] = "-dbc";
+
+    if (EnablePS2Logo)
+        argv[argc++] = "-logo";
+
+    LoadELFFromFileWithPartition(neutrinoPath, "", argc, argv);
+}
