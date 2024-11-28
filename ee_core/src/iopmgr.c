@@ -123,6 +123,9 @@ static void ResetIopSpecial(const char *args, unsigned int arglen)
         LoadOPLModule(OPL_MODULE_ID_USBD, 0, 11, "thpri=2,3");
     }
 
+    if (g_compat_mask & COMPAT_MODE_7)
+        LoadOPLModule(OPL_MODULE_ID_MODE7, 0, 0, NULL);
+
     switch (config->GameMode) {
         case BDM_USB_MODE:
             LoadOPLModule(OPL_MODULE_ID_USBMASSBD, 0, 0, NULL);
