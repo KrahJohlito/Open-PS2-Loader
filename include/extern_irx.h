@@ -84,6 +84,8 @@ IMPORT_BIN2C(f2techioppatch_irx);
 
 IMPORT_BIN2C(padman_irx);
 
+IMPORT_BIN2C(patch_membo_irx);
+
 IMPORT_BIN2C(poweroff_irx);
 
 IMPORT_BIN2C(ppctty_irx);

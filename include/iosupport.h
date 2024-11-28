@@ -67,10 +67,10 @@ enum ERROR_CODE {
 #define COMPAT_MODE_4 0x08 // Skip Videos: Apply 0 (zero) file size to PSS videos and also skip Bink (.BIK) ones
 #define COMPAT_MODE_5 0x10 // Emulate DVD-DL
 #define COMPAT_MODE_6 0x20 // Disable IGR
-#define COMPAT_MODE_7 0x40 // Unused
+#define COMPAT_MODE_7 0x40 // Patch IOP buffer overrun (bug in the game) by Maximus32
 #define COMPAT_MODE_8 0x80 // Unused
 
-#define COMPAT_MODE_COUNT 6 // only count modes in use
+#define COMPAT_MODE_COUNT 7 // only count modes in use
 
 #define OPL_MOD_STORAGE 0x00097000 //(default) Address of the module storage region
 
