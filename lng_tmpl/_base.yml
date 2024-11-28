@@ -704,3 +704,7 @@ gui_strings:
   string: BD Debug Log
 - label: CORE_LOADER
   string: Core
+- label: MODE7
+  string: Mode 7
+- label: HINT_MODE7
+  string: Patch IOP Buffer Overrun

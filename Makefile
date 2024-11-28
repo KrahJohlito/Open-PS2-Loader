@@ -82,7 +82,7 @@ IOP_OBJS =	iomanx.o filexio.o ps2fs.o usbd.o bdmevent.o \
 		sio2man.o padman.o mcman.o mcserv.o \
 		httpclient-iop.o netman.o ps2ips.o \
 		bdm_mcemu.o hdd_mcemu.o smb_mcemu.o \
-		iremsndpatch.o apemodpatch.o f2techioppatch.o cleareffects.o resetspu.o \
+		iremsndpatch.o apemodpatch.o f2techioppatch.o cleareffects.o resetspu.o patch_membo.o\
 		libsd.o audsrv.o
 
 EECORE_OBJS = ee_core.o ioprp.o util.o \
@@ -294,6 +294,8 @@ clean:	download_lwNBD
 	$(MAKE) -C modules/iopcore/patches/f2techioppatch clean
 	echo "   -cleareffects"
 	$(MAKE) -C modules/iopcore/patches/cleareffects clean
+	echo " -patch_membo"
+	$(MAKE) -C modules/iopcore/patch_membo clean
 	echo " -isofs"
 	$(MAKE) -C modules/isofs clean
 	echo " -bdmevent"
@@ -469,6 +471,12 @@ modules/iopcore/resetspu/resetspu.irx: modules/iopcore/resetspu
 	$(MAKE) -C $<
 
 $(EE_ASM_DIR)resetspu.c: modules/iopcore/resetspu/resetspu.irx | $(EE_ASM_DIR)
+	$(BIN2C) $< $@ $(*F)_irx
+
+modules/iopcore/patch_membo/patch_membo.irx: modules/iopcore/patch_membo
+	$(MAKE) -C $<
+
+$(EE_ASM_DIR)patch_membo.c: modules/iopcore/patch_membo/patch_membo.irx | $(EE_ASM_DIR)
 	$(BIN2C) $< $@ $(*F)_irx
 
 modules/mcemu/bdm_mcemu.irx: modules/mcemu
