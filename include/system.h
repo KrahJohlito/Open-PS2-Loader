@@ -7,8 +7,8 @@
 #define SYS_LOAD_USB_MODULES  0x02
 #define SYS_LOAD_ISOFS_MODULE 0x04
 
-#define NEUTRINO_PATH     "mc0:neutrino.elf"
-#define NEUTRINO_ALT_PATH "mc1:neutrino.elf"
+#define NEUTRINO_PATH     "mc0:NEUTRINO/neutrino.elf"
+#define NEUTRINO_ALT_PATH "mc1:NEUTRINO/neutrino.elf"
 
 unsigned int USBA_crc32(const char *string);
 int sysGetDiscID(char *discID);
