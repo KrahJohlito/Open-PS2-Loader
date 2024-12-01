@@ -1108,7 +1108,7 @@ static void guiDrawBusy(int alpha)
 
 static void guiRenderGreeting(int alpha)
 {
-    u64 mycolor = GS_SETREG_RGBA(0x1C, 0x1C, 0x1C, alpha);
+    u64 mycolor = GS_SETREG_RGBA(0xFF, 0xFF, 0xFF, alpha);
     rmDrawRect(0, 0, screenWidth, screenHeight, mycolor);
 
     GSTEXTURE *logo = thmGetTexture(LOGO_PICTURE);

@@ -99,6 +99,10 @@ extern void *Vmode_pal_png;
 extern void *logo_png;
 extern void *case_png;
 extern void *apps_case_png;
+extern void *plank_png;
+extern void *lm_case_png;
+extern void *lm_apps_case_png;
+extern void *lm_case_shadow_png;
 
 // Not related to screen size, just to limit at some point
 static int maxSize = 720 * 512 * 4;
@@ -220,6 +224,10 @@ static texture_t internalDefault[TEXTURES_COUNT] = {
     {LOGO_PICTURE, "logo", &logo_png},
     {CASE_OVERLAY, "case", &case_png},
     {APPS_CASE_OVERLAY, "apps_case", &apps_case_png},
+    {PLANK, "plank", &plank_png},
+    {LM_CASE_OVERLAY, "lm_case", &lm_case_png},
+    {LM_APPS_CASE_OVERLAY, "lm_apps_case", &lm_apps_case_png},
+    {LM_CASE_SHADOW, "lm_case_shadow", &lm_case_shadow_png},
 };
 
 int texLookupInternalTexId(const char *name)
