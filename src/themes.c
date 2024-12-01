@@ -701,9 +701,14 @@ static theme_element_t *initBasic(const char *themePath, config_set_t *themeConf
         elem->height = h;
 
     snprintf(elemProp, sizeof(elemProp), "%s_aligned", name);
-    if (configGetInt(themeConfig, elemProp, &intValue))
-        elem->aligned = (intValue == 0) ? ALIGN_NONE : ALIGN_CENTER;
-    else
+    if (configGetInt(themeConfig, elemProp, &intValue)) {
+        if (intValue == 0)
+            elem->aligned = ALIGN_NONE;
+        else if (intValue == 1)
+            elem->aligned = ALIGN_CENTER;
+        else if (intValue == 2)
+            elem->aligned = ALIGN_RIGHT;
+    } else
         elem->aligned = aligned;
 
     snprintf(elemProp, sizeof(elemProp), "%s_scaled", name);
@@ -972,9 +977,13 @@ static void drawCoverFlow(struct menu_list *menu, struct submenu_list *item, con
             coverSpacing = 0;
     }
 
-    int coverDistance = 0;
+    if (gWideScreen)
+        coverSpacing = rmWideScale(coverSpacing);
+
+    int coverDistance = coverWidth + coverSpacing;
     int posX = coverSpacing + (coverWidth >> 1);
-    u64 Col = GS_SETREG_RGBA(0x80, 0x80, 0x80, 0x20);
+
+    posX += gWideScreen ? coverSpacing : (coverSpacing >> 1);
 
     float animationProgress = 0.0f; // Progress of animation (0.0 - 1.0)
     float animationSpeed = 0.05f;   // Speed of animation
@@ -997,8 +1006,8 @@ static void drawCoverFlow(struct menu_list *menu, struct submenu_list *item, con
     }
 
     for (int i = 0; i < COVERFLOW_COUNT; i++) {
+        int renderPosX = posX;
         posX += coverDistance;
-        coverDistance = coverWidth + coverSpacing;
 
         if (game[i] == NULL)
             continue;
@@ -1009,12 +1018,12 @@ static void drawCoverFlow(struct menu_list *menu, struct submenu_list *item, con
             texture[i] = (gameCover[i]->defaultTexture) ? &gameCover[i]->defaultTexture->source : thmGetTexture(COVER_DEFAULT);
 
         if (gameCover[i]->overlayTexture) {
-            rmDrawOverlayPixmap(&gameCover[i]->overlayTexture->source, posX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, (i == 1) ? gDefaultCol : Col,
+            rmDrawOverlayPixmap(&gameCover[i]->overlayTexture->source, renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol,
                                 texture[i], gameCover[i]->overlayTexture->upperLeft_x, gameCover[i]->overlayTexture->upperLeft_y, gameCover[i]->overlayTexture->upperRight_x,
                                 gameCover[i]->overlayTexture->upperRight_y, gameCover[i]->overlayTexture->lowerLeft_x, gameCover[i]->overlayTexture->lowerLeft_y,
                                 gameCover[i]->overlayTexture->lowerRight_x, gameCover[i]->overlayTexture->lowerRight_y);
         } else
-            rmDrawPixmap(texture[i], posX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, (i == 1) ? gDefaultCol : Col);
+            rmDrawPixmap(texture[i], renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol);
     }
 }
 
