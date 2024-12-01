@@ -841,7 +841,7 @@ static void drawItemsList(struct menu_list *menu, struct submenu_list *item, con
         u64 color;
 
         while (ps && (others++ < itemsList->displayedItems)) {
-            if (ps == item)
+            if (ps == item && itemsList->displayedItems > 1)
                 color = gTheme->selTextColor;
             else
                 color = elem->color;
