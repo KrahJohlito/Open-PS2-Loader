@@ -496,6 +496,9 @@ static mutable_image_t *initMutableImage(const char *themePath, config_set_t *th
 
 static void drawStaticImage(struct menu_list *menu, struct submenu_list *item, config_set_t *config, struct theme_element *elem)
 {
+    if (!item && elem->disabled)
+        return;
+
     mutable_image_t *staticImage = (mutable_image_t *)elem->extended;
     if (staticImage->overlayTexture) {
         rmDrawOverlayPixmap(&staticImage->overlayTexture->source, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
@@ -729,6 +732,12 @@ static theme_element_t *initBasic(const char *themePath, config_set_t *themeConf
         if (intValue > 0 && intValue < THM_MAX_FONTS)
             elem->font = theme->fonts[intValue];
     }
+
+    snprintf(elemProp, sizeof(elemProp), "%s_disabled", name);
+    if (configGetInt(themeConfig, elemProp, &intValue))
+        elem->disabled = intValue;
+    else
+        elem->disabled = 0;
 
     return elem;
 }
