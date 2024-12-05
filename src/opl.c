@@ -1807,9 +1807,9 @@ void setDefaultColors(void)
     gDefaultTextColor[1] = 0x00;
     gDefaultTextColor[2] = 0x00;
 
-    gDefaultSelTextColor[0] = 0xbf;
-    gDefaultSelTextColor[1] = 0x82;
-    gDefaultSelTextColor[2] = 0x44;
+    gDefaultSelTextColor[0] = 0xBD;
+    gDefaultSelTextColor[1] = 0x5F;
+    gDefaultSelTextColor[2] = 0x1D;
 
     gDefaultUITextColor[0] = 0x58;
     gDefaultUITextColor[1] = 0x68;
