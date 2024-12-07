@@ -380,6 +380,104 @@ void rmDrawOverlayPixmap(GSTEXTURE *overlay, int x, int y, short aligned, int w,
     rmDrawQuad(&quad);
 }
 
+void rmDrawPixmapWithReflection(GSTEXTURE *txt, int x, int y, short aligned, int w, int h, short scaled, u64 color)
+{
+    rm_quad_t quad;
+    rmSetupQuad(txt, x, y, aligned, w, h, scaled, color, &quad);
+
+    if ((quad.txt->PSM == GS_PSM_CT32) || (quad.txt->Clut && quad.txt->ClutPSM == GS_PSM_CT32)) {
+        gsGlobal->PrimAlphaEnable = GS_SETTING_ON;
+        gsKit_set_test(gsGlobal, GS_ATEST_ON);
+    } else {
+        gsGlobal->PrimAlphaEnable = GS_SETTING_OFF;
+        gsKit_set_test(gsGlobal, GS_ATEST_OFF);
+    }
+
+    gsKit_TexManager_bind(gsGlobal, quad.txt);
+    gsKit_prim_sprite_texture(gsGlobal, txt,
+                              quad.ul.x + fRenderXOff, quad.ul.y + fRenderYOff,
+                              quad.ul.u, quad.ul.v,
+                              quad.br.x + fRenderXOff, quad.br.y + fRenderYOff,
+                              quad.br.u, quad.br.v,
+                              2, color);
+
+    // Adjust alpha for reflection
+    u64 reflectionColor = GS_SETREG_RGBAQ((color >> 24) & 0xFF, (color >> 16) & 0xFF, (color >> 8) & 0xFF, ((color & 0xFF) / 2), 0x00);
+
+    // Draw the reflection
+    gsKit_prim_sprite_texture(gsGlobal, txt,
+                              quad.ul.x + fRenderXOff, quad.br.y + fRenderYOff,
+                              quad.ul.u, quad.ul.v,
+                              quad.br.x + fRenderXOff, quad.br.y + fRenderYOff + (quad.br.y - quad.ul.y),
+                              quad.br.u, quad.br.v,
+                              2, reflectionColor);
+
+    order++;
+}
+
+void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short aligned, int w, int h, short scaled, u64 color,
+                                       GSTEXTURE *inlay, int ulx, int uly, int urx, int ury, int blx, int bly, int brx, int bry)
+{
+    rm_quad_t quad;
+    rmSetupQuad(overlay, x, y, aligned, w, h, scaled, color, &quad);
+    ulx = X_SCALE(ulx * iAspectWidth) >> 2;
+    urx = X_SCALE(urx * iAspectWidth) >> 2;
+    blx = X_SCALE(blx * iAspectWidth) >> 2;
+    brx = X_SCALE(brx * iAspectWidth) >> 2;
+    uly = Y_SCALE(uly);
+    ury = Y_SCALE(ury);
+    bly = Y_SCALE(bly);
+    bry = Y_SCALE(bry);
+
+    if ((inlay->PSM == GS_PSM_CT32) || (inlay->Clut && inlay->ClutPSM == GS_PSM_CT32))
+        gsGlobal->PrimAlphaEnable = GS_SETTING_ON;
+    else
+        gsGlobal->PrimAlphaEnable = GS_SETTING_OFF;
+
+    gsKit_TexManager_bind(gsGlobal, inlay);
+    gsKit_prim_quad_texture(gsGlobal, inlay,
+                            quad.ul.x + ulx + fRenderXOff, quad.ul.y + uly + fRenderYOff,
+                            0.0f, 0.0f,
+                            quad.ul.x + urx + fRenderXOff, quad.ul.y + ury + fRenderYOff,
+                            inlay->Width, 0.0f,
+                            quad.ul.x + blx + fRenderXOff, quad.ul.y + bly + fRenderYOff,
+                            0.0f, inlay->Height,
+                            quad.ul.x + brx + fRenderXOff, quad.ul.y + bry + fRenderYOff,
+                            inlay->Width, inlay->Height, order, gDefaultCol);
+
+    order++;
+    rmDrawQuad(&quad);
+
+    // Adjust alpha for reflection
+    u64 reflectionColor = GS_SETREG_RGBAQ((color >> 24) & 0xFF, (color >> 16) & 0xFF, (color >> 8) & 0xFF, ((color & 0xFF) / 2), 0x00);
+
+    // Draw the reflection of inlay
+    gsKit_prim_quad_texture(gsGlobal, inlay,
+                            quad.ul.x + ulx + fRenderXOff, quad.br.y + fRenderYOff,
+                            0.0f, inlay->Height,
+                            quad.ul.x + urx + fRenderXOff, quad.br.y + fRenderYOff,
+                            inlay->Width, inlay->Height,
+                            quad.ul.x + blx + fRenderXOff, quad.br.y + fRenderYOff + (quad.br.y - quad.ul.y),
+                            0.0f, 0.0f,
+                            quad.ul.x + brx + fRenderXOff, quad.br.y + fRenderYOff + (quad.br.y - quad.ul.y),
+                            inlay->Width, 0.0f, order, reflectionColor);
+
+    order++;
+
+    // Draw the reflection of overlay
+    gsKit_prim_quad_texture(gsGlobal, overlay,
+                            quad.ul.x + fRenderXOff, quad.br.y + fRenderYOff,
+                            0.0f, overlay->Height,
+                            quad.br.x + fRenderXOff, quad.br.y + fRenderYOff,
+                            overlay->Width, overlay->Height,
+                            quad.ul.x + fRenderXOff, quad.br.y + fRenderYOff + (quad.br.y - quad.ul.y),
+                            0.0f, 0.0f,
+                            quad.br.x + fRenderXOff, quad.br.y + fRenderYOff + (quad.br.y - quad.ul.y),
+                            overlay->Width, 0.0f, order, reflectionColor);
+
+    order++;
+}
+
 void rmDrawRect(int x, int y, int w, int h, u64 color)
 {
     float fx = X_SCALE(x) + fRenderXOff;
