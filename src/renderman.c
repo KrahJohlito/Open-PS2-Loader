@@ -393,26 +393,43 @@ void rmDrawPixmapWithReflection(GSTEXTURE *txt, int x, int y, short aligned, int
         gsKit_set_test(gsGlobal, GS_ATEST_OFF);
     }
 
-    gsKit_TexManager_bind(gsGlobal, quad.txt);
+    gsKit_TexManager_bind(gsGlobal, txt);
     gsKit_prim_sprite_texture(gsGlobal, txt,
                               quad.ul.x + fRenderXOff, quad.ul.y + fRenderYOff,
                               quad.ul.u, quad.ul.v,
                               quad.br.x + fRenderXOff, quad.br.y + fRenderYOff,
                               quad.br.u, quad.br.v,
-                              2, color);
-
-    // Adjust alpha for reflection
-    u64 reflectionColor = GS_SETREG_RGBAQ((color >> 24) & 0xFF, (color >> 16) & 0xFF, (color >> 8) & 0xFF, ((color & 0xFF) / 2), 0x00);
-
-    // Draw the reflection
-    gsKit_prim_sprite_texture(gsGlobal, txt,
-                              quad.ul.x + fRenderXOff, quad.br.y + fRenderYOff,
-                              quad.ul.u, quad.ul.v,
-                              quad.br.x + fRenderXOff, quad.br.y + fRenderYOff + (quad.br.y - quad.ul.y),
-                              quad.br.u, quad.br.v,
-                              2, reflectionColor);
-
+                              order, color);
     order++;
+
+    float rowHeight = 1.0f;
+    float totalHeight = quad.br.y - quad.ul.y;
+    float alphaStart = 0x20;
+    float alphaEnd = 0x00;
+
+    for (float row = 0; row < totalHeight; row += rowHeight) {
+        float alpha;
+        if (row < totalHeight / 4.0f)
+            alpha = alphaStart - ((alphaStart - alphaEnd) * (row / (totalHeight / 4.0f)));
+        else
+            alpha = 0x00;
+
+        u64 reflectionColor = GS_SETREG_RGBAQ((color >> 24) & 0xFF, (color >> 16) & 0xFF, (color >> 8) & 0xFF, (u8)alpha, 0x00);
+
+        float texTop = ((totalHeight - row - rowHeight) / totalHeight) * txt->Height;
+        float texBottom = ((totalHeight - row) / totalHeight) * txt->Height;
+
+        float screenTop = quad.br.y + fRenderYOff + row;
+        float screenBottom = quad.br.y + fRenderYOff + row + rowHeight;
+
+        gsKit_prim_sprite_texture(gsGlobal, txt,
+                                  quad.ul.x + fRenderXOff, screenTop,
+                                  quad.ul.u, texTop,
+                                  quad.br.x + fRenderXOff, screenBottom,
+                                  quad.br.u, texBottom,
+                                  order, reflectionColor);
+        order++;
+    }
 }
 
 void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short aligned, int w, int h, short scaled, u64 color,
@@ -420,6 +437,7 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
 {
     rm_quad_t quad;
     rmSetupQuad(overlay, x, y, aligned, w, h, scaled, color, &quad);
+
     ulx = X_SCALE(ulx * iAspectWidth) >> 2;
     urx = X_SCALE(urx * iAspectWidth) >> 2;
     blx = X_SCALE(blx * iAspectWidth) >> 2;
@@ -448,34 +466,49 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
     order++;
     rmDrawQuad(&quad);
 
-    // Adjust alpha for reflection
-    u64 reflectionColor = GS_SETREG_RGBAQ((color >> 24) & 0xFF, (color >> 16) & 0xFF, (color >> 8) & 0xFF, ((color & 0xFF) / 2), 0x00);
+    float rowHeight = 1.0f;
+    float totalHeight = quad.br.y - quad.ul.y;
+    float alphaStart = 0x20;
+    float alphaEnd = 0x00;
 
-    // Draw the reflection of inlay
-    gsKit_prim_quad_texture(gsGlobal, inlay,
-                            quad.ul.x + ulx + fRenderXOff, quad.br.y + fRenderYOff,
-                            0.0f, inlay->Height,
-                            quad.ul.x + urx + fRenderXOff, quad.br.y + fRenderYOff,
-                            inlay->Width, inlay->Height,
-                            quad.ul.x + blx + fRenderXOff, quad.br.y + fRenderYOff + (quad.br.y - quad.ul.y),
-                            0.0f, 0.0f,
-                            quad.ul.x + brx + fRenderXOff, quad.br.y + fRenderYOff + (quad.br.y - quad.ul.y),
-                            inlay->Width, 0.0f, order, reflectionColor);
+    for (float row = 0; row < totalHeight; row += rowHeight) {
+        float alpha;
+        if (row < totalHeight / 4.0f)
+            alpha = alphaStart - ((alphaStart - alphaEnd) * (row / (totalHeight / 4.0f)));
+        else
+            alpha = 0x00;
 
-    order++;
+        u64 reflectionColor = GS_SETREG_RGBAQ((color >> 24) & 0xFF, (color >> 16) & 0xFF, (color >> 8) & 0xFF, (u8)alpha, 0x00);
 
-    // Draw the reflection of overlay
-    gsKit_prim_quad_texture(gsGlobal, overlay,
-                            quad.ul.x + fRenderXOff, quad.br.y + fRenderYOff,
-                            0.0f, overlay->Height,
-                            quad.br.x + fRenderXOff, quad.br.y + fRenderYOff,
-                            overlay->Width, overlay->Height,
-                            quad.ul.x + fRenderXOff, quad.br.y + fRenderYOff + (quad.br.y - quad.ul.y),
-                            0.0f, 0.0f,
-                            quad.br.x + fRenderXOff, quad.br.y + fRenderYOff + (quad.br.y - quad.ul.y),
-                            overlay->Width, 0.0f, order, reflectionColor);
+        float texTop = ((totalHeight - row - rowHeight) / totalHeight) * inlay->Height;
+        float texBottom = ((totalHeight - row) / totalHeight) * inlay->Height;
 
-    order++;
+        float screenTop = quad.br.y + fRenderYOff + row;
+        float screenBottom = quad.br.y + fRenderYOff + row + rowHeight;
+
+        gsKit_prim_quad_texture(gsGlobal, inlay,
+                                quad.ul.x + ulx + fRenderXOff, screenTop,
+                                0.0f, texTop,
+                                quad.ul.x + urx + fRenderXOff, screenTop,
+                                inlay->Width, texTop,
+                                quad.ul.x + blx + fRenderXOff, screenBottom,
+                                0.0f, texBottom,
+                                quad.ul.x + brx + fRenderXOff, screenBottom,
+                                inlay->Width, texBottom,
+                                order, reflectionColor);
+        order++;
+
+        texTop = ((totalHeight - row - rowHeight) / totalHeight) * overlay->Height;
+        texBottom = ((totalHeight - row) / totalHeight) * overlay->Height;
+
+        gsKit_prim_sprite_texture(gsGlobal, overlay,
+                                  quad.ul.x + fRenderXOff, screenTop,
+                                  quad.ul.u, texTop,
+                                  quad.br.x + fRenderXOff, screenBottom,
+                                  quad.br.u, texBottom,
+                                  order, reflectionColor);
+        order++;
+    }
 }
 
 void rmDrawRect(int x, int y, int w, int h, u64 color)
