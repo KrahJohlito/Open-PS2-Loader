@@ -451,10 +451,15 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
 
     u64 reflectionColorBase = GS_SETREG_RGBAQ((color >> 24) & 0xFF, (color >> 16) & 0xFF, (color >> 8) & 0xFF, 0x20, 0x00);
 
-    int reflectionHeight = quad.br.y - quad.ul.y;
-    int rows = reflectionHeight / 4;
+    float reflectionHeight = quad.br.y - quad.ul.y;
+    int rows = (int)reflectionHeight / 4;
+
+    float reflectionStartY = y + ((int)reflectionHeight / 2) - 1;
 
     float alphaDecrement = 0x20 / (float)rows;
+
+    float textureRowHeightInlay = inlay->Height / 4.0f / rows;
+    float textureRowHeightOverlay = overlay->Height / 4.0f / rows;
 
     for (int i = 0; i < rows; i++) {
         int currentAlpha = 0x20 - (int)(i * alphaDecrement);
@@ -464,61 +469,38 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
         u64 reflectionColor = GS_SETREG_RGBAQ((color >> 24) & 0xFF, (color >> 16) & 0xFF, (color >> 8) & 0xFF, currentAlpha, 0x00);
 
         rm_quad_t reflectionQuad;
-        rmSetupQuad(overlay, x, (y - 1) + (reflectionHeight / 2) + i, aligned, w, 1, scaled, color, &reflectionQuad);
+        rmSetupQuad(overlay, x, reflectionStartY + i, aligned, w, 1, scaled, color, &reflectionQuad);
+
+        float tTopInlay = inlay->Height - (i * textureRowHeightInlay);
+        float tBottomInlay = inlay->Height - ((i + 1) * textureRowHeightInlay);
+
+        float tTopOverlay = overlay->Height - (i * textureRowHeightOverlay);
+        float tBottomOverlay = overlay->Height - ((i + 1) * textureRowHeightOverlay);
 
         gsKit_prim_quad_texture(gsGlobal, inlay,
                                 reflectionQuad.ul.x + ulx + fRenderXOff, reflectionQuad.br.y + fRenderYOff,
-                                0.0f, inlay->Height,
+                                0.0f, tTopInlay,
                                 reflectionQuad.ul.x + urx + fRenderXOff, reflectionQuad.br.y + fRenderYOff,
-                                inlay->Width, inlay->Height,
+                                inlay->Width, tTopInlay,
                                 reflectionQuad.ul.x + blx + fRenderXOff, reflectionQuad.br.y + fRenderYOff + (reflectionQuad.br.y - reflectionQuad.ul.y),
-                                0.0f, inlay->Height - i,
+                                0.0f, tBottomInlay,
                                 reflectionQuad.ul.x + brx + fRenderXOff, reflectionQuad.br.y + fRenderYOff + (reflectionQuad.br.y - reflectionQuad.ul.y),
-                                inlay->Width, inlay->Height - i, order, reflectionColor);
+                                inlay->Width, tBottomInlay, order, reflectionColor);
 
         order++;
 
         gsKit_prim_quad_texture(gsGlobal, overlay,
                                 reflectionQuad.ul.x + fRenderXOff, reflectionQuad.br.y + fRenderYOff,
-                                0.0f, overlay->Height,
+                                0.0f, tTopOverlay,
                                 reflectionQuad.br.x + fRenderXOff, reflectionQuad.br.y + fRenderYOff,
-                                overlay->Width, overlay->Height,
+                                overlay->Width, tTopOverlay,
                                 reflectionQuad.ul.x + fRenderXOff, reflectionQuad.br.y + fRenderYOff + (reflectionQuad.br.y - reflectionQuad.ul.y),
-                                0.0f, overlay->Height - i,
+                                0.0f, tBottomOverlay,
                                 reflectionQuad.br.x + fRenderXOff, reflectionQuad.br.y + fRenderYOff + (reflectionQuad.br.y - reflectionQuad.ul.y),
-                                overlay->Width, overlay->Height - i, order, reflectionColor);
+                                overlay->Width, tBottomOverlay, order, reflectionColor);
 
         order++;
     }
-
-    /*float reflectionCutoffHeight = reflectionHeight / 2.0f;
-
-    rm_quad_t reflectionQuad;
-    rmSetupQuad(overlay, x, y + ((int)reflectionHeight / 4), aligned, w, reflectionCutoffHeight, scaled, color, &reflectionQuad);
-
-    gsKit_prim_quad_texture(gsGlobal, inlay,
-                            reflectionQuad.ul.x + ulx + fRenderXOff, reflectionQuad.br.y + fRenderYOff,
-                            0.0f, inlay->Height,
-                            reflectionQuad.ul.x + urx + fRenderXOff, reflectionQuad.br.y + fRenderYOff,
-                            inlay->Width, inlay->Height,
-                            reflectionQuad.ul.x + blx + fRenderXOff, reflectionQuad.br.y + fRenderYOff + (reflectionQuad.br.y - reflectionQuad.ul.y),
-                            0.0f, inlay->Height / 2.0f,
-                            reflectionQuad.ul.x + brx + fRenderXOff, reflectionQuad.br.y + fRenderYOff + (reflectionQuad.br.y - reflectionQuad.ul.y),
-                            inlay->Width, inlay->Height / 2.0f, order, reflectionColor);
-
-    order++;
-
-    gsKit_prim_quad_texture(gsGlobal, overlay,
-                            reflectionQuad.ul.x + fRenderXOff, reflectionQuad.br.y + fRenderYOff,
-                            0.0f, overlay->Height,
-                            reflectionQuad.br.x + fRenderXOff, reflectionQuad.br.y + fRenderYOff,
-                            overlay->Width, overlay->Height,
-                            reflectionQuad.ul.x + fRenderXOff, reflectionQuad.br.y + fRenderYOff + (reflectionQuad.br.y - reflectionQuad.ul.y),
-                            0.0f, overlay->Height / 2.0f,
-                            reflectionQuad.br.x + fRenderXOff, reflectionQuad.br.y + fRenderYOff + (reflectionQuad.br.y - reflectionQuad.ul.y),
-                            overlay->Width, overlay->Height / 2.0f, order, reflectionColor);
-
-    order++;*/
 }
 
 void rmDrawRect(int x, int y, int w, int h, u64 color)
