@@ -460,6 +460,7 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
     else
         reflectionStartY = (float)(y + h);
 
+    float rowHeight = reflectionHeight / (float)rows;
     float reflectionRowY = reflectionStartY;
 
     float alphaDecrement = 0x20 / (float)rows;
@@ -507,7 +508,7 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
 
         order++;
 
-        reflectionRowY += 1.0f;
+        reflectionRowY += rowHeight;
     }
 }
 
