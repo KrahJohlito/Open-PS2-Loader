@@ -454,14 +454,11 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
     float reflectionHeight = quad.br.y - quad.ul.y;
     int rows = (int)reflectionHeight / 4;
 
-    float reflectionStartY;
+    int reflectionStartY;
     if (aligned)
-        reflectionStartY = (float)(y + (h / 2) - 1);
+        reflectionStartY = (y + (h / 2) - 1);
     else
-        reflectionStartY = (float)(y + h);
-
-    float rowHeight = reflectionHeight / (float)rows;
-    float reflectionRowY = reflectionStartY;
+        reflectionStartY = y + h;
 
     float alphaDecrement = 0x20 / (float)rows;
 
@@ -476,7 +473,7 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
         u64 reflectionColor = GS_SETREG_RGBAQ((color >> 24) & 0xFF, (color >> 16) & 0xFF, (color >> 8) & 0xFF, currentAlpha, 0x00);
 
         rm_quad_t reflectionQuad;
-        rmSetupQuad(overlay, x, (int)reflectionRowY, aligned, w, 1, scaled, color, &reflectionQuad);
+        rmSetupQuad(overlay, x, reflectionStartY + i, aligned, w, 1, scaled, color, &reflectionQuad);
 
         float tTopInlay = inlay->Height - (i * textureRowHeightInlay);
         float tBottomInlay = inlay->Height - ((i + 1) * textureRowHeightInlay);
@@ -507,8 +504,6 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
                                 overlay->Width, tBottomOverlay, order, reflectionColor);
 
         order++;
-
-        reflectionRowY += rowHeight;
     }
 }
 
