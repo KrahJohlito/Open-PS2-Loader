@@ -458,8 +458,8 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
 
     float alphaDecrement = 0x20 / (float)rows;
 
-    float textureRowHeightInlay = inlay->Height / 4.0f / rows;
-    float textureRowHeightOverlay = overlay->Height / 4.0f / rows;
+    int textureRowHeightInlay = inlay->Height / 4.0f / rows;
+    int textureRowHeightOverlay = overlay->Height / 4.0f / rows;
 
     for (int i = 0; i < rows; i++) {
         int currentAlpha = 0x20 - (int)(i * alphaDecrement);
