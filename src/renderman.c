@@ -474,8 +474,8 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
         int tTopInlay = inlay->Height - (i * textureRowHeightInlay);
         int tBottomInlay = inlay->Height - ((i + 1) * textureRowHeightInlay);
 
-        int tTopOverlay = reflectionQuad->br.v - (i * textureRowHeightOverlay);
-        int tBottomOverlay = reflectionQuad->br.v - ((i + 1) * textureRowHeightOverlay);
+        int tTopOverlay = reflectionQuad.br.v - (i * textureRowHeightOverlay);
+        int tBottomOverlay = reflectionQuad.br.v - ((i + 1) * textureRowHeightOverlay);
 
         gsKit_prim_quad_texture(gsGlobal, inlay,
                                 reflectionQuad.ul.x + ulx + fRenderXOff, reflectionQuad.br.y + fRenderYOff,
