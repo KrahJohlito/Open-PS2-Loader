@@ -79,6 +79,7 @@ typedef struct theme_element
     short scaled;
     u64 color;
     int font;
+    int reflection;
 
     void *extended;
 

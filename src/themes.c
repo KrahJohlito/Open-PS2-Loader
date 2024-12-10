@@ -546,11 +546,20 @@ static void drawGameImage(struct menu_list *menu, struct submenu_list *item, con
         }
 
         if (gameImage->overlayTexture) {
-            rmDrawOverlayPixmap(&gameImage->overlayTexture->source, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
-                                texture, gameImage->overlayTexture->upperLeft_x, gameImage->overlayTexture->upperLeft_y, gameImage->overlayTexture->upperRight_x, gameImage->overlayTexture->upperRight_y,
-                                gameImage->overlayTexture->lowerLeft_x, gameImage->overlayTexture->lowerLeft_y, gameImage->overlayTexture->lowerRight_x, gameImage->overlayTexture->lowerRight_y);
-        } else
-            rmDrawPixmap(texture, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
+            if (elem->reflection)
+                rmDrawOverlayPixmapWithReflection(&gameImage->overlayTexture->source, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
+                                                  texture, gameImage->overlayTexture->upperLeft_x, gameImage->overlayTexture->upperLeft_y, gameImage->overlayTexture->upperRight_x, gameImage->overlayTexture->upperRight_y,
+                                                  gameImage->overlayTexture->lowerLeft_x, gameImage->overlayTexture->lowerLeft_y, gameImage->overlayTexture->lowerRight_x, gameImage->overlayTexture->lowerRight_y);
+            else
+                rmDrawOverlayPixmap(&gameImage->overlayTexture->source, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
+                                    texture, gameImage->overlayTexture->upperLeft_x, gameImage->overlayTexture->upperLeft_y, gameImage->overlayTexture->upperRight_x, gameImage->overlayTexture->upperRight_y,
+                                    gameImage->overlayTexture->lowerLeft_x, gameImage->overlayTexture->lowerLeft_y, gameImage->overlayTexture->lowerRight_x, gameImage->overlayTexture->lowerRight_y);
+        } else {
+            if (elem->reflection)
+                rmDrawPixmapWithReflection(texture, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
+            else
+                rmDrawPixmap(texture, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
+        }
 
     } else if (elem->type == ELEM_TYPE_BACKGROUND) {
         if (gameImage->defaultTexture)
@@ -729,6 +738,12 @@ static theme_element_t *initBasic(const char *themePath, config_set_t *themeConf
         if (intValue > 0 && intValue < THM_MAX_FONTS)
             elem->font = theme->fonts[intValue];
     }
+
+    snprintf(elemProp, sizeof(elemProp), "%s_reflection", name);
+    if (configGetInt(themeConfig, elemProp, &intValue))
+        elem->reflection = intValue;
+    else
+        elem->reflection = 0;
 
     return elem;
 }
@@ -1018,12 +1033,22 @@ static void drawCoverFlow(struct menu_list *menu, struct submenu_list *item, con
             texture[i] = (gameCover[i]->defaultTexture) ? &gameCover[i]->defaultTexture->source : thmGetTexture(COVER_DEFAULT);
 
         if (gameCover[i]->overlayTexture) {
-            rmDrawOverlayPixmapWithReflection(&gameCover[i]->overlayTexture->source, renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol,
-                                              texture[i], gameCover[i]->overlayTexture->upperLeft_x, gameCover[i]->overlayTexture->upperLeft_y, gameCover[i]->overlayTexture->upperRight_x,
-                                              gameCover[i]->overlayTexture->upperRight_y, gameCover[i]->overlayTexture->lowerLeft_x, gameCover[i]->overlayTexture->lowerLeft_y,
-                                              gameCover[i]->overlayTexture->lowerRight_x, gameCover[i]->overlayTexture->lowerRight_y);
-        } else
-            rmDrawPixmapWithReflection(texture[i], renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol);
+            if (elem->reflection)
+                rmDrawOverlayPixmapWithReflection(&gameCover[i]->overlayTexture->source, renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol,
+                                                  texture[i], gameCover[i]->overlayTexture->upperLeft_x, gameCover[i]->overlayTexture->upperLeft_y, gameCover[i]->overlayTexture->upperRight_x,
+                                                  gameCover[i]->overlayTexture->upperRight_y, gameCover[i]->overlayTexture->lowerLeft_x, gameCover[i]->overlayTexture->lowerLeft_y,
+                                                  gameCover[i]->overlayTexture->lowerRight_x, gameCover[i]->overlayTexture->lowerRight_y);
+            else
+                rmDrawOverlayPixmap(&gameCover[i]->overlayTexture->source, renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol,
+                                    texture[i], gameCover[i]->overlayTexture->upperLeft_x, gameCover[i]->overlayTexture->upperLeft_y, gameCover[i]->overlayTexture->upperRight_x,
+                                    gameCover[i]->overlayTexture->upperRight_y, gameCover[i]->overlayTexture->lowerLeft_x, gameCover[i]->overlayTexture->lowerLeft_y,
+                                    gameCover[i]->overlayTexture->lowerRight_x, gameCover[i]->overlayTexture->lowerRight_y);
+        } else {
+            if (elem->reflection)
+                rmDrawPixmapWithReflection(texture[i], renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol);
+            else
+                rmDrawPixmap(texture[i], renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol);
+        }
     }
 }
 
