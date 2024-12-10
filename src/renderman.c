@@ -451,14 +451,10 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
 
     u64 reflectionColorBase = GS_SETREG_RGBAQ((color >> 24) & 0xFF, (color >> 16) & 0xFF, (color >> 8) & 0xFF, 0x20, 0x00);
 
-    float reflectionHeight = quad.br.y - quad.ul.y;
-    int rows = (int)reflectionHeight / 4;
+    //float reflectionHeight = quad.br.y - quad.ul.y;
+    int rows = h / 4;
 
-    int reflectionStartY;
-    if (aligned)
-        reflectionStartY = (y + (h / 2) - 1);
-    else
-        reflectionStartY = y + h;
+    int reflectionStartY = (y + (h / 2) - 2);
 
     float alphaDecrement = 0x20 / (float)rows;
 
