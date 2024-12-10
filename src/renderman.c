@@ -458,8 +458,8 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
 
     float alphaDecrement = 0x20 / (float)rows;
 
-    int textureRowHeightInlay = inlay->Height / 4.0f / rows;
-    int textureRowHeightOverlay = overlay->Height / 4.0f / rows;
+    float textureRowHeightInlay = inlay->Height / 4.0f / rows;
+    float textureRowHeightOverlay = overlay->Height / 4.0f / rows;
 
     for (int i = 0; i < rows; i++) {
         int currentAlpha = 0x20 - (int)(i * alphaDecrement);
@@ -474,8 +474,8 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
         int tTopInlay = inlay->Height - (i * textureRowHeightInlay);
         int tBottomInlay = inlay->Height - ((i + 1) * textureRowHeightInlay);
 
-        int tTopOverlay = overlay->Height - (i * textureRowHeightOverlay);
-        int tBottomOverlay = overlay->Height - ((i + 1) * textureRowHeightOverlay);
+        int tTopOverlay = reflectionQuad->br.v - (i * textureRowHeightOverlay);
+        int tBottomOverlay = reflectionQuad->br.v - ((i + 1) * textureRowHeightOverlay);
 
         gsKit_prim_quad_texture(gsGlobal, inlay,
                                 reflectionQuad.ul.x + ulx + fRenderXOff, reflectionQuad.br.y + fRenderYOff,
