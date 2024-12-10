@@ -456,7 +456,7 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
 
     int reflectionStartY;
     if (aligned)
-        reflectionStartY = (int)(y + h + (reflectionHeight / 2) - 1);
+        reflectionStartY = (int)(y + (h / 2) + (reflectionHeight / 2) - 1);
     else
         reflectionStartY = (int)(y + h - 1);
 
