@@ -471,9 +471,16 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
     float alphaStart = 0x20;
     float alphaEnd = 0x00;
 
+float ulx_factor = (ulx - blx) / inlay->Height;
+float ury_factor = (ury - bly) / inlay->Height;
+float brx_factor = (brx - brx) / inlay->Height;
+float bly_factor = (bly - bry) / inlay->Height; 
+
 for (int y = 0; y < inlay->Height; y += rowHeight) {
-    bly = y;
-    bry = y + rowHeight; 
+    float ulx = ulx + (y * ulx_factor);
+    float ury = ury + (y * ury_factor);
+    float brx = brx + (y * brx_factor);
+    float bly = bly + (y * bly_factor); 
 
     gsKit_prim_quad_texture(gsGlobal, inlay,
                             quad.ul.x + urx + fRenderXOff, quad.ul.y + uly + fRenderYOff,
@@ -482,7 +489,7 @@ for (int y = 0; y < inlay->Height; y += rowHeight) {
                             0.0f, inlay->Height,
                             quad.ul.x + brx + fRenderXOff, quad.ul.y + bly + fRenderYOff,
                             inlay->Width, 0.0f,
-                            quad.ul.x + blx + fRenderXOff, quad.ul.y + bry + fRenderYOff,
+                            quad.ul.x + blx + fRenderXOff, quad.ul.y + bly + fRenderYOff,
                             0.0f, 0.0f, order, gDefaultCol);
 }
 
