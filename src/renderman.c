@@ -471,7 +471,25 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
     float alphaStart = 0x20;
     float alphaEnd = 0x00;
 
-    for (float row = 0; row < totalHeight; row += rowHeight) {
+for (int row = 0; row < inlay->Height; row++) {
+    float rowYPosition = quad.ul.y + uly + fRenderYOff + row;
+    
+    float textureYStart = row / (float)inlay->Height;
+    float textureYEnd = (row + 1) / (float)inlay->Height;
+
+    gsKit_prim_quad_texture(gsGlobal, inlay,
+                            quad.ul.x + urx + fRenderXOff, rowYPosition,
+                            inlay->Width, 1.0f,
+                            quad.ul.x + ulx + fRenderXOff, rowYPosition,
+                            0.0f, textureYStart,
+                            quad.ul.x + brx + fRenderXOff, rowYPosition,
+                            inlay->Width, textureYEnd,
+                            quad.ul.x + blx + fRenderXOff, rowYPosition,
+                            0.0f, textureYEnd,
+                            order, gDefaultCol);
+}
+
+    /*for (float row = 0; row < totalHeight; row += rowHeight) {
         float alpha;
         if (row < totalHeight / 4.0f)
             alpha = alphaStart - ((alphaStart - alphaEnd) * (row / (totalHeight / 4.0f)));
@@ -508,7 +526,7 @@ void rmDrawOverlayPixmapWithReflection(GSTEXTURE *overlay, int x, int y, short a
                                   quad.br.u, texBottom,
                                   order, reflectionColor);
         order++;
-    }
+    }*/
 }
 
 void rmDrawRect(int x, int y, int w, int h, u64 color)
