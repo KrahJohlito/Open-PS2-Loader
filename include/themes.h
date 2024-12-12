@@ -80,6 +80,7 @@ typedef struct theme_element
     u64 color;
     int font;
     int reflection;
+    int wsX;
 
     void *extended;
 

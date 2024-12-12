@@ -545,20 +545,22 @@ static void drawGameImage(struct menu_list *menu, struct submenu_list *item, con
             }
         }
 
+        int x = gWideScreen ? elem->wsX : elem->posX;
+
         if (gameImage->overlayTexture) {
             if (elem->reflection)
-                rmDrawOverlayPixmapWithReflection(&gameImage->overlayTexture->source, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
+                rmDrawOverlayPixmapWithReflection(&gameImage->overlayTexture->source, x, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
                                                   texture, gameImage->overlayTexture->upperLeft_x, gameImage->overlayTexture->upperLeft_y, gameImage->overlayTexture->upperRight_x, gameImage->overlayTexture->upperRight_y,
                                                   gameImage->overlayTexture->lowerLeft_x, gameImage->overlayTexture->lowerLeft_y, gameImage->overlayTexture->lowerRight_x, gameImage->overlayTexture->lowerRight_y);
             else
-                rmDrawOverlayPixmap(&gameImage->overlayTexture->source, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
+                rmDrawOverlayPixmap(&gameImage->overlayTexture->source, x, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
                                     texture, gameImage->overlayTexture->upperLeft_x, gameImage->overlayTexture->upperLeft_y, gameImage->overlayTexture->upperRight_x, gameImage->overlayTexture->upperRight_y,
                                     gameImage->overlayTexture->lowerLeft_x, gameImage->overlayTexture->lowerLeft_y, gameImage->overlayTexture->lowerRight_x, gameImage->overlayTexture->lowerRight_y);
         } else {
             if (elem->reflection)
-                rmDrawPixmapWithReflection(texture, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
+                rmDrawPixmapWithReflection(texture, x, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
             else
-                rmDrawPixmap(texture, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
+                rmDrawPixmap(texture, x, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
         }
 
     } else if (elem->type == ELEM_TYPE_BACKGROUND) {
@@ -745,6 +747,15 @@ static theme_element_t *initBasic(const char *themePath, config_set_t *themeConf
     else
         elem->reflection = 0;
 
+    snprintf(elemProp, sizeof(elemProp), "%s_wsX", name);
+    if (configGetInt(themeConfig, elemProp, &intValue)) {
+        if (intValue < 0)
+            elem->wsX = screenWidth + intValue;
+        else
+            elem->wsX = intValue;
+    } else
+        elem->wsX = elem->posX;
+
     return elem;
 }
 
@@ -840,9 +851,11 @@ static void drawBDMIndex(struct menu_list *menu, struct submenu_list *item, conf
     char imgName[32];
     snprintf(imgName, sizeof(imgName), "Index_%d", itemList->mode);
 
+    int x = gWideScreen ? elem->wsX : elem->posX;
+
     GSTEXTURE *indexTex = thmGetTexture(texLookupInternalTexId(&imgName[0]));
     if (indexTex && indexTex->Mem)
-        rmDrawPixmap(indexTex, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
+        rmDrawPixmap(indexTex, x, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol);
 }
 
 static void drawItemsList(struct menu_list *menu, struct submenu_list *item, config_set_t *config, struct theme_element *elem)
