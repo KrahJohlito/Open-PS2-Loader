@@ -4,32 +4,64 @@ Copyright 2013, Ifcaro & jimmikaelkael
 Licensed under Academic Free License version 3.0
 Review the LICENSE file for further details.
 
-[![CI](https://github.com/ps2homebrew/Open-PS2-Loader/actions/workflows/compilation.yml/badge.svg?branch=master)](https://github.com/ps2homebrew/Open-PS2-Loader/actions/workflows/compilation.yml)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/99032a6a180243bfa0d0e23efeb0608d)](https://www.codacy.com/gh/ps2homebrew/Open-PS2-Loader/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ps2homebrew/Open-PS2-Loader&amp;utm_campaign=Badge_Grade)
+[![CI](https://github.com/KrahJohlito/Open-PS2-Loader/actions/workflows/compilation.yml/badge.svg?branch=uOPL-1)](https://github.com/KrahJohlito/Open-PS2-Loader/actions/workflows/compilation.yml)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/99032a6a180243bfa0d0e23efeb0608d)](https://www.codacy.com/gh/KrahJohlito/Open-PS2-Loader/dashboard?utm_source=github.com&utm_medium=referral&utm_content=KrahJohlito/Open-PS2-Loader&utm_campaign=Badge_Grade)
 [![Discord](https://img.shields.io/discord/652861436992946216?style=flat&logo=Discord)](https://discord.gg/CVFUa9xh6B)
-[![Mega](https://img.shields.io/badge/Mega-%23D90007.svg?style=flat&logo=Mega&logoColor=white)](https://mega.nz/folder/Ndwi1bAK#oLWNhH_g-h0p4BoT4c556A)
 
 ## Introduction
 
 Open PS2 Loader (OPL) is a 100% Open source game and application loader for
 the PS2 and PS3 units. It supports five categories of devices: USB mass
 storage devices, MX4SIO (SD card connected to memory card port via adapter), iLink (SBP2 compliant storage devices via IEE1394), SMBv1 shares and the PlayStation 2 HDD unit.
-USB/SMB/MX4SIO/iLink support both USBExtreme and \*.ISO formats while PS2 HDD supports HDLoader format,
-all devices also support ZSO format (compressed ISO). It's now the most compatible homebrew loader.
+USB/SMB/MX4SIO/iLink/HDD (ATA) support both USBExtreme and \*.ISO formats while PS2 HDD (APA) supports HDLoader format,
+all devices also support ZSO format (compressed ISO).
 
-OPL is developed continuously - anyone can contribute improvements to the project due to its open-source nature.
+This is a forked repository you can find the official repository here:
+<https://github.com/ps2homebrew/Open-PS2-Loader>
 
-You can visit the Open PS2 Loader forum at:
+<details>
+  <summary> <b> Changes in uOPL </b> </summary>
+<p>
 
-<https://www.psx-place.com/forums/open-ps2-loader-opl.77/>
+  * uOPL uses a slightly older build environment in an attempt to increase stability, more akin to OPL r2049
+  * Multi USB works without issues for OPL Core (workaround)
+  * ATA HDD support ala grimdoomers fork
+  * Favourites Menu
+  * Optional Neutrino Core loading for increased compatibility
+  * Additional Mode 7 ala Neutrino (works with both Neutrino and OPL core)
+  * Legacy apps paths with `mass:` work
+  * Two new built in themes `<uOPL>` & `<uOPL-CF>`
+  * Additional theme options
+  * Debug builds have the option to send LOGs to a BDM device
+  * Disable all button for cheats selection menu
+  * Cancel pending ART requests at launch (should stop a crash that occurs when traversing the games list quickly and suddenly launching a title)
 
-You can report compatibility game problems at:
+### Neutrino Support
+Neutrino needs to be stored on either `mc0:NEUTRINO/neutrino.elf` or `mc1:NEUTRINO/neutrino.elf` with the usual setup of `config` and `modules` subfolders.<br>
+In game settings you will find an option `Core Loader` with the options of `<OPL>` or `Neutrino`<br><br>
+Supported devices: `USB` `MX4SIO` `HDD (ATA)` `iLink` `HDD (APA) - untested`<br><br>
+Neutrino does not support:<br>
+`ZSO Format` `USBExtreme Format` (Will result in `<OPL>` core being used instead even if `Neutrino` is selected)<br>
+`PADEMU` `GSM` `Cheats` (Will result in `Neutrino` still being used however these features will not be applied)<br><br>
+Get Neutrino here: https://github.com/rickgaiser/neutrino/releases
 
-<https://www.psx-place.com/threads/open-ps2-loader-game-bug-reports.19401/>
+### Additional Theme Options
+These are all optional and will use default values if omitted.
 
-For an updated compatibility list, you can visit the OPL-CL site at:
+| Key                         | Description                                                                                                        |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `wsX`                       | Sets theme element posX position in widescreen (avoids the need for seperate 4:3 and 16:9 theme cfgs)              |
+| `skip`                      | If enabled will skip rendering of StaticImage types if there is no currently selected item                         |
+| `reflection`                | If enabled will render a reflection of GameImage or Coverflow types (not recommended for faked perspective images) |
+| `plasma_blend_color`        | Optional secondary blend colour for plasma (now you can mix bg & blend colour, previously it only bg & black)      |
+| `Coverflow`                 | New type will render 3 covers at a time, works with overlays and reflection etc                                    |
+| `aligned=2`                 | New value for "aligned" to right justify                                                                           |
 
-<http://sx.sytes.net/oplcl/games.aspx>
+<img src="previews/uOPL.png" height="300" />
+<img src="previews/uOPL-CF.png" height="300" />
+
+</p>
+</details>
 
 <details>
   <summary> <b> Release types </b> </summary>
@@ -69,7 +101,7 @@ USB modes:
 
 OPL will automatically create the above directory structure the first time you launch it and enable your favorite device.
 
-For HDD users, OPL will read `hdd0:__common/OPL/conf_hdd.cfg` for the config entry `hdd_partition` to use as your OPL partition.
+For HDD (APA) users, OPL will read `hdd0:__common/OPL/conf_hdd.cfg` for the config entry `hdd_partition` to use as your OPL partition.
 If not found a config file, a 128Mb `+OPL` partition will be created. You can edit the config if you wish to use/create a different partition.
 All partitions created by OPL will be 128Mb (it is not recommended to enlarge partitions as it will break LBAs, instead remove and recreate manually with uLaunchELF at a larger size if needed).
 
@@ -77,11 +109,11 @@ All partitions created by OPL will be 128Mb (it is not recommended to enlarge pa
 </details>
 
 <details>
-  <summary> <b> USB/MX4SIO/iLink </b> </summary>
+  <summary> <b> USB/MX4SIO/iLink/HDD (ATA) </b> </summary>
 
 
-Game files should be *ideally* defragmented either file by file or by whole drive,
-and games larger than 4gb must use USBExtreme format if device uses FAT32 format (see OPLUtil or USBUtil programs).
+Game files should be *ideally* defragmented either file by file or by whole drive.
+Games larger than 4GB must be stored on a device formatted with exFAT, or if the device is using FAT32, the USBExtreme format must be used (see OPLUtil or USBUtil programs).
 We do **not** recommend using any defrag programs. The best way for defragmenting - copy all files to pc, format USB, copy all files back.
 Repeat it once you faced defragmenting problem again.
 
@@ -104,13 +136,32 @@ are supported using the folder structure above.
 </details>
 
 <details>
-  <summary> <b> HDD </b> </summary>
+  <summary> <b> HDD (APA)</b> </summary>
 <p>
 
 For PS2, 48-bit LBA internal HDDs up to 2TB are supported. HDD should be
 formatted with the APA partition scheme. OPL will create the `+OPL` partition on the HDD.
 To avoid this, you can create a text file at the location `hdd0:__common:pfs:OPL/conf_hdd.txt`
 that contains the preferred partition name (for example `__common`).
+
+</p>
+</details>
+
+<details>
+  <summary> <b> Cheats </b> </summary>
+<p>
+
+OPL accepts `.cht` files in PS2RD format. Each cheat file corresponds to a specific game and must be stored in the `CHT` directory on your device.
+Cheats are structured as hexadecimal codes, with proper headers as descriptions to identify their function.
+You can activate cheats via OPL's graphical interface. Navigate to a games settings, enable cheats and select the desired mode.
+
+### cheat modes
+
+  * Auto Select Cheats:  
+This mode will enable and apply all cheat codes in your `.cht` file to your game automatically.
+
+  * Select Game Cheats:  
+When enabled a cheat selection menu will appear when you launch a game. You can navigate the menu and disable undesired cheats for this launch session. `Mastercode`s cannot be disabled as they are required for any other cheats to be applied.
 
 </p>
 </details>
