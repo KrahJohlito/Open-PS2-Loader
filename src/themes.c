@@ -1042,12 +1042,25 @@ static void drawCoverFlow(struct menu_list *menu, struct submenu_list *item, con
         }
     }
 
+    int scaling = 30;
     for (int i = 0; i < COVERFLOW_COUNT; i++) {
         int renderPosX = posX;
         posX += coverDistance;
 
         if (covers[i].game == NULL)
             continue;
+
+        int currentCoverWidth = coverWidth;
+        int currentCoverHeight = coverHeight;
+        int overlayOffsetY = 0;
+        int overlayOffsetX = 0;
+
+        if (i == 1) {
+            currentCoverWidth += scaling;
+            currentCoverHeight += scaling;
+            overlayOffsetY = scaling;
+            overlayOffsetX = scaling * (gWideScreen ? (4.0f / 3.0f) : 1.0f) - (scaling * ((4.0f / 3.0f) - 1.0f) / 2.0f);
+        }
 
         covers[i].cover = (mutable_image_t *)elem->extended;
         covers[i].texture = getGameImageTexture(covers[i].cover->cache, menu->item->userdata, &covers[i].game->item);
@@ -1056,20 +1069,20 @@ static void drawCoverFlow(struct menu_list *menu, struct submenu_list *item, con
 
         if (covers[i].cover->overlayTexture) {
             if (elem->reflection)
-                rmDrawOverlayPixmapWithReflection(&covers[i].cover->overlayTexture->source, renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol,
-                                                  covers[i].texture, covers[i].cover->overlayTexture->upperLeft_x, covers[i].cover->overlayTexture->upperLeft_y, covers[i].cover->overlayTexture->upperRight_x,
-                                                  covers[i].cover->overlayTexture->upperRight_y, covers[i].cover->overlayTexture->lowerLeft_x, covers[i].cover->overlayTexture->lowerLeft_y,
-                                                  covers[i].cover->overlayTexture->lowerRight_x, covers[i].cover->overlayTexture->lowerRight_y);
+                rmDrawOverlayPixmapWithReflection(&covers[i].cover->overlayTexture->source, renderPosX, elem->posY, ALIGN_CENTER, currentCoverWidth, currentCoverHeight, SCALING_NONE, gDefaultCol,
+                                                  covers[i].texture, covers[i].cover->overlayTexture->upperLeft_x, covers[i].cover->overlayTexture->upperLeft_y, covers[i].cover->overlayTexture->upperRight_x + overlayOffsetX,
+                                                  covers[i].cover->overlayTexture->upperRight_y, covers[i].cover->overlayTexture->lowerLeft_x, covers[i].cover->overlayTexture->lowerLeft_y + overlayOffsetY,
+                                                  covers[i].cover->overlayTexture->lowerRight_x + overlayOffsetX, covers[i].cover->overlayTexture->lowerRight_y + overlayOffsetY);
             else
-                rmDrawOverlayPixmap(&covers[i].cover->overlayTexture->source, renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol,
-                                    covers[i].texture, covers[i].cover->overlayTexture->upperLeft_x, covers[i].cover->overlayTexture->upperLeft_y, covers[i].cover->overlayTexture->upperRight_x,
-                                    covers[i].cover->overlayTexture->upperRight_y, covers[i].cover->overlayTexture->lowerLeft_x, covers[i].cover->overlayTexture->lowerLeft_y,
-                                    covers[i].cover->overlayTexture->lowerRight_x, covers[i].cover->overlayTexture->lowerRight_y);
+                rmDrawOverlayPixmap(&covers[i].cover->overlayTexture->source, renderPosX, elem->posY, ALIGN_CENTER, currentCoverWidth, currentCoverHeight, SCALING_NONE, gDefaultCol,
+                                    covers[i].texture, covers[i].cover->overlayTexture->upperLeft_x, covers[i].cover->overlayTexture->upperLeft_y, covers[i].cover->overlayTexture->upperRight_x + overlayOffsetX,
+                                    covers[i].cover->overlayTexture->upperRight_y, covers[i].cover->overlayTexture->lowerLeft_x, covers[i].cover->overlayTexture->lowerLeft_y + overlayOffsetY,
+                                    covers[i].cover->overlayTexture->lowerRight_x + overlayOffsetX, covers[i].cover->overlayTexture->lowerRight_y + overlayOffsetY);
         } else {
             if (elem->reflection)
-                rmDrawPixmapWithReflection(covers[i].texture, renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol);
+                rmDrawPixmapWithReflection(covers[i].texture, renderPosX, elem->posY, ALIGN_CENTER, currentCoverWidth, currentCoverHeight, SCALING_NONE, gDefaultCol);
             else
-                rmDrawPixmap(covers[i].texture, renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol);
+                rmDrawPixmap(covers[i].texture, renderPosX, elem->posY, ALIGN_CENTER, currentCoverWidth, currentCoverHeight, SCALING_NONE, gDefaultCol);
         }
     }
 }
