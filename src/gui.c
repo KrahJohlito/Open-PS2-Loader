@@ -1305,12 +1305,11 @@ void guiDrawBGPlasma()
         for (x = 0; x < PLASMA_W; x++) {
             u32 fper = guiCalcPerlin((float)(2 * x) / PLASMA_W, (float)(2 * y) / PLASMA_H, perz) * 0x80 + 0x80;
 
-            *buf = GS_SETREG_RGBA(
-                (u32)(fper * curbgColor[0]) >> 8,
-                (u32)(fper * curbgColor[1]) >> 8,
-                (u32)(fper * curbgColor[2]) >> 8,
-                0x80);
+            u32 red = ((u32)(fper * curbgColor[0]) + ((0xFF - fper) * ((gTheme->plasBlendColor >> 56) & 0xFF))) >> 8;
+            u32 green = ((u32)(fper * curbgColor[1]) + ((0xFF - fper) * ((gTheme->plasBlendColor >> 48) & 0xFF))) >> 8;
+            u32 blue = ((u32)(fper * curbgColor[2]) + ((0xFF - fper) * ((gTheme->plasBlendColor >> 40) & 0xFF))) >> 8;
 
+            *buf = GS_SETREG_RGBA(red, green, blue, 0x80);
             ++buf;
         }
     }

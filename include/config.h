@@ -71,6 +71,7 @@ enum CONFIG_INDEX {
 #define CONFIG_OPL_TEXTCOLOR            "text_color"
 #define CONFIG_OPL_UI_TEXTCOLOR         "ui_text_color"
 #define CONFIG_OPL_SEL_TEXTCOLOR        "sel_text_color"
+#define CONFIG_OPL_PLAS_BLEND_COLOR     "plasma_blend_color"
 #define CONFIG_OPL_ENABLE_NOTIFICATIONS "enable_notifications"
 #define CONFIG_OPL_ENABLE_COVERART      "enable_coverart"
 #define CONFIG_OPL_WIDESCREEN           "wide_screen"

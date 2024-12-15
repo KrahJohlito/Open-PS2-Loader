@@ -112,6 +112,7 @@ typedef struct theme
     u64 textColor;
     u64 uiTextColor;
     u64 selTextColor;
+    u64 plasBlendColor;
 
     theme_elems_t mainElems;
     theme_elems_t infoElems;

@@ -1350,6 +1350,7 @@ static void thmSetColors(theme_t *theme)
     theme->textColor = GS_SETREG_RGBA(gDefaultTextColor[0], gDefaultTextColor[1], gDefaultTextColor[2], 0x80);
     theme->uiTextColor = GS_SETREG_RGBA(gDefaultUITextColor[0], gDefaultUITextColor[1], gDefaultUITextColor[2], 0x80);
     theme->selTextColor = GS_SETREG_RGBA(gDefaultSelTextColor[0], gDefaultSelTextColor[1], gDefaultSelTextColor[2], 0x80);
+    theme->plasBlendColor = GS_SETREG_RGBA(gDefaultPlasmaBlendColor[0], gDefaultPlasmaBlendColor[1], gDefaultPlasmaBlendColor[2], 0x80);
 
     theme_element_t *elem = theme->mainElems.first;
     while (elem) {
@@ -1467,6 +1468,9 @@ static void thmLoad(const char *themePath, int themeID)
 
     if (configGetColor(themeConfig, "sel_text_color", color))
         newT->selTextColor = GS_SETREG_RGBA(color[0], color[1], color[2], 0x80);
+
+    if (configGetColor(themeConfig, "plasma_blend_color", color))
+        newT->plasBlendColor = GS_SETREG_RGBA(color[0], color[1], color[2], 0x80);
 
     // before loading the element definitions, we have to have the fonts prepared
     // for that, we load the fonts and a translation table

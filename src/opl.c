@@ -190,6 +190,7 @@ unsigned char gDefaultBgColor[3];
 unsigned char gDefaultTextColor[3];
 unsigned char gDefaultSelTextColor[3];
 unsigned char gDefaultUITextColor[3];
+unsigned char gDefaultPlasmaBlendColor[3];
 hdl_game_info_t *gAutoLaunchGame;
 base_game_info_t *gAutoLaunchBDMGame;
 bdm_device_data_t *gAutoLaunchDeviceData;
@@ -1040,6 +1041,7 @@ static void _loadConfig()
             configGetColor(configOPL, CONFIG_OPL_TEXTCOLOR, gDefaultTextColor);
             configGetColor(configOPL, CONFIG_OPL_UI_TEXTCOLOR, gDefaultUITextColor);
             configGetColor(configOPL, CONFIG_OPL_SEL_TEXTCOLOR, gDefaultSelTextColor);
+            configGetColor(configOPL, CONFIG_OPL_PLAS_BLEND_COLOR, gDefaultPlasmaBlendColor);
             configGetInt(configOPL, CONFIG_OPL_ENABLE_NOTIFICATIONS, &gEnableNotifications);
             configGetInt(configOPL, CONFIG_OPL_ENABLE_COVERART, &gEnableArt);
             configGetInt(configOPL, CONFIG_OPL_WIDESCREEN, &gWideScreen);
@@ -1223,6 +1225,7 @@ static void _saveConfig()
         configSetColor(configOPL, CONFIG_OPL_TEXTCOLOR, gDefaultTextColor);
         configSetColor(configOPL, CONFIG_OPL_UI_TEXTCOLOR, gDefaultUITextColor);
         configSetColor(configOPL, CONFIG_OPL_SEL_TEXTCOLOR, gDefaultSelTextColor);
+        configSetColor(configOPL, CONFIG_OPL_PLAS_BLEND_COLOR, gDefaultPlasmaBlendColor);
         configSetInt(configOPL, CONFIG_OPL_ENABLE_NOTIFICATIONS, gEnableNotifications);
         configSetInt(configOPL, CONFIG_OPL_ENABLE_COVERART, gEnableArt);
         configSetInt(configOPL, CONFIG_OPL_WIDESCREEN, gWideScreen);
@@ -1814,6 +1817,10 @@ void setDefaultColors(void)
     gDefaultUITextColor[0] = 0x58;
     gDefaultUITextColor[1] = 0x68;
     gDefaultUITextColor[2] = 0xB4;
+
+    gDefaultPlasmaBlendColor[0] = 0x00;
+    gDefaultPlasmaBlendColor[1] = 0x00;
+    gDefaultPlasmaBlendColor[2] = 0x00;
 }
 
 static void setDefaults(void)
