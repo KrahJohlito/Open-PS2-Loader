@@ -81,6 +81,7 @@ typedef struct theme_element
     int font;
     int reflection;
     int wsX;
+    int skip;
 
     void *extended;
 

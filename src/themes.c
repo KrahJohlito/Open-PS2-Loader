@@ -496,6 +496,9 @@ static mutable_image_t *initMutableImage(const char *themePath, config_set_t *th
 
 static void drawStaticImage(struct menu_list *menu, struct submenu_list *item, config_set_t *config, struct theme_element *elem)
 {
+    if (!item && elem->skip)
+        return;
+
     mutable_image_t *staticImage = (mutable_image_t *)elem->extended;
     if (staticImage->overlayTexture) {
         rmDrawOverlayPixmap(&staticImage->overlayTexture->source, elem->posX, elem->posY, elem->aligned, elem->width, elem->height, elem->scaled, gDefaultCol,
@@ -755,6 +758,12 @@ static theme_element_t *initBasic(const char *themePath, config_set_t *themeConf
             elem->wsX = intValue;
     } else
         elem->wsX = elem->posX;
+
+    snprintf(elemProp, sizeof(elemProp), "%s_skip", name);
+    if (configGetInt(themeConfig, elemProp, &intValue))
+        elem->skip = intValue;
+    else
+        elem->skip = 0;
 
     return elem;
 }
