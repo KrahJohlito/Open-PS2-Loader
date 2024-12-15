@@ -1889,6 +1889,16 @@ void guiManageCheats(void)
                 gCheats[selectedCheat].enabled = !gCheats[selectedCheat].enabled;
         }
 
+        // Disable all cheats (except mastercode)
+        if (getKeyOn(KEY_SQUARE)) {
+            for (int i = 0; i < cheatCount; i++) {
+                if (!(strncasecmp(gCheats[i].name, "mastercode", 10) == 0 || strncasecmp(gCheats[i].name, "master code", 11) == 0))
+                    gCheats[i].enabled = 0;
+            }
+
+            sfxPlay(SFX_CANCEL);
+        }
+
         if (getKeyOn(KEY_START))
             terminate = 1;
 
@@ -1925,6 +1935,7 @@ void guiManageCheats(void)
 
         guiDrawIconAndText(gSelectButton == KEY_CIRCLE ? CIRCLE_ICON : CROSS_ICON, _STR_SELECT, gTheme->fonts[0], 70, 417, gTheme->selTextColor);
         guiDrawIconAndText(START_ICON, _STR_RUN, gTheme->fonts[0], 500, 417, gTheme->selTextColor);
+        guiDrawIconAndText(SQUARE_ICON, _STR_DISABLE_ALL, gTheme->fonts[0], 290, 417, gTheme->selTextColor);
 
         guiEndFrame();
     }

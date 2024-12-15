@@ -708,3 +708,5 @@ gui_strings:
   string: Mode 7
 - label: HINT_MODE7
   string: Patch IOP Buffer Overrun
+- label: DISABLE_ALL
+  string: Disable All
