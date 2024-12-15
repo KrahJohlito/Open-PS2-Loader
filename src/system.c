@@ -1117,6 +1117,8 @@ static const char *getDeviceName(const char *driver)
         return "mx4sio";
     else if (!strncmp(driver, "ata", 3))
         return "ata";
+    else if (!strncmp(driver, "apa", 3))
+        return "apa";
     else
         return "unsupported";
 }
@@ -1151,19 +1153,32 @@ void sysLaunchNeutrino(const char *driver, const char *path, int compatmask, int
     char device[64];
     char filePath[256];
     char compatModes[64];
-    char *argv[5];
+    char *argv[6];
     int argc = 0;
 
-    snprintf(device, sizeof(device), "-bsd=%s", getDeviceName(driver));
-    argv[argc++] = device;
+    const char *deviceName = getDeviceName(driver);
+    if (!strncmp(deviceName, "apa", 3)) {
+        snprintf(device, sizeof(device), "-bsd=ata");
+        argv[argc++] = device;
 
-    snprintf(filePath, sizeof(filePath), "-dvd=%s", path);
-    argv[argc++] = filePath;
+        snprintf(device, sizeof(device), "-bsdfs=hdl");
+        argv[argc++] = device;
+
+        snprintf(filePath, sizeof(filePath), "-dvd=hdl:%s", path);
+        argv[argc++] = filePath;
+    } else {
+        snprintf(device, sizeof(device), "-bsd=%s", deviceName);
+        argv[argc++] = device;
+
+        snprintf(filePath, sizeof(filePath), "-dvd=%s", path);
+        argv[argc++] = filePath;
+    }
 
     snprintf(compatModes, sizeof(compatModes), "-gc=%d", convertCompatmaskToModes(compatmask));
     argv[argc++] = compatModes;
 
     LOG("COMPAT MODE ARG=%s\n", compatModes);
+    LOG("FILE PATH=%s\n", filePath);
 
     if (gEnableDebug)
         argv[argc++] = "-dbc";

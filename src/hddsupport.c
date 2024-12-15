@@ -572,6 +572,10 @@ void hddLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
     if (gPS2Logo)
         EnablePS2Logo = CheckPS2Logo(0, game->start_sector + OPL_HDD_MODE_PS2LOGO_OFFSET);
 
+    int coreLoader = 0;
+    int isZSO = 0;
+    configGetInt(configSet, CONFIG_ITEM_CORE_LOADER, &coreLoader);
+
     // Check for ZSO to correctly adjust layer1 start
     settings->common.layer1_start = 0; // cdvdman will read it from APA header
     hddReadSectors(game->start_sector + OPL_HDD_MODE_PS2LOGO_OFFSET, 1, IOBuffer);
@@ -584,6 +588,7 @@ void hddLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
         if (maxLBA > 0 && maxLBA < ziso_total_block) {   // dual layer check
             settings->common.layer1_start = maxLBA - 16; // adjust second layer start
         }
+        isZSO = 1;
     }
 
     if (gAutoLaunchGame == NULL)
@@ -596,6 +601,22 @@ void hddLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
 
         fileXioUmount("pfs0:");
         fileXioDevctl("pfs:", PDIOC_CLOSEALL, NULL, 0, NULL, 0);
+    }
+
+    const char *neutrinoPath = sbFileExists(NEUTRINO_PATH) ? NEUTRINO_PATH : (sbFileExists(NEUTRINO_ALT_PATH) ? NEUTRINO_ALT_PATH : NULL);
+    if (coreLoader) {
+        if (isZSO) {
+            guiWarning("Neutrino does not support this file format, launching with <OPL> core", 6);
+            coreLoader = 0;
+        } else if (neutrinoPath == NULL) {
+            guiWarning("Neutrino ELF not found, launching with <OPL> core", 6);
+            coreLoader = 0;
+        }
+    }
+
+    if (coreLoader) {
+        sysLaunchNeutrino("apa", game->partition_name, compatMode, EnablePS2Logo, neutrinoPath);
+        return;
     }
 
     settings->common.fakemodule_flags |= FAKE_MODULE_FLAG_DEV9;
