@@ -1590,8 +1590,8 @@ static void thmRebuildGuiNames(void)
     guiThemesNames = (const char **)malloc((nThemes + 3) * sizeof(const char *));
 
     // add default internal
-    guiThemesNames[0] = "<OPL>";
-    guiThemesNames[1] = "<OPL-CF>";
+    guiThemesNames[0] = "<uOPL>";
+    guiThemesNames[1] = "<uOPL-CF>";
 
     int i = 0;
     for (; i < nThemes; i++) {
