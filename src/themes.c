@@ -1018,20 +1018,20 @@ static void drawCoverFlow(struct menu_list *menu, struct submenu_list *item, con
         coverSpacing = rmWideScale(coverSpacing);
 
     int coverDistance = coverWidth + coverSpacing;
-    int posX = coverSpacing + (coverWidth >> 1);
-
-    posX += gWideScreen ? coverSpacing : (coverSpacing >> 1);
+    int posX = (coverSpacing << 1) + (coverWidth >> 1);
 
     float animationProgress = 0.0f; // Progress of animation (0.0 - 1.0)
     float animationSpeed = 0.05f;   // Speed of animation
 
-    submenu_list_t *game[COVERFLOW_COUNT] = {NULL};
-    mutable_image_t *gameCover[COVERFLOW_COUNT];
-    GSTEXTURE *texture[COVERFLOW_COUNT];
-
-    game[0] = item->prev;
-    game[1] = item;
-    game[2] = item->next;
+    struct
+    {
+        submenu_list_t *game;
+        mutable_image_t *cover;
+        GSTEXTURE *texture;
+    } covers[COVERFLOW_COUNT] = {
+        {item->prev, NULL, NULL},
+        {item, NULL, NULL},
+        {item->next, NULL, NULL}};
 
     if (isAnimating) {
         posX += animationDirection * (animationProgress * coverDistance);
@@ -1046,30 +1046,30 @@ static void drawCoverFlow(struct menu_list *menu, struct submenu_list *item, con
         int renderPosX = posX;
         posX += coverDistance;
 
-        if (game[i] == NULL)
+        if (covers[i].game == NULL)
             continue;
 
-        gameCover[i] = (mutable_image_t *)elem->extended;
-        texture[i] = getGameImageTexture(gameCover[i]->cache, menu->item->userdata, &game[i]->item);
-        if (!texture[i] || !texture[i]->Mem)
-            texture[i] = (gameCover[i]->defaultTexture) ? &gameCover[i]->defaultTexture->source : thmGetTexture(COVER_DEFAULT);
+        covers[i].cover = (mutable_image_t *)elem->extended;
+        covers[i].texture = getGameImageTexture(covers[i].cover->cache, menu->item->userdata, &covers[i].game->item);
+        if (!covers[i].texture || !covers[i].texture->Mem)
+            covers[i].texture = (covers[i].cover->defaultTexture) ? &covers[i].cover->defaultTexture->source : thmGetTexture(COVER_DEFAULT);
 
-        if (gameCover[i]->overlayTexture) {
+        if (covers[i].cover->overlayTexture) {
             if (elem->reflection)
-                rmDrawOverlayPixmapWithReflection(&gameCover[i]->overlayTexture->source, renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol,
-                                                  texture[i], gameCover[i]->overlayTexture->upperLeft_x, gameCover[i]->overlayTexture->upperLeft_y, gameCover[i]->overlayTexture->upperRight_x,
-                                                  gameCover[i]->overlayTexture->upperRight_y, gameCover[i]->overlayTexture->lowerLeft_x, gameCover[i]->overlayTexture->lowerLeft_y,
-                                                  gameCover[i]->overlayTexture->lowerRight_x, gameCover[i]->overlayTexture->lowerRight_y);
+                rmDrawOverlayPixmapWithReflection(&covers[i].cover->overlayTexture->source, renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol,
+                                                  covers[i].texture, covers[i].cover->overlayTexture->upperLeft_x, covers[i].cover->overlayTexture->upperLeft_y, covers[i].cover->overlayTexture->upperRight_x,
+                                                  covers[i].cover->overlayTexture->upperRight_y, covers[i].cover->overlayTexture->lowerLeft_x, covers[i].cover->overlayTexture->lowerLeft_y,
+                                                  covers[i].cover->overlayTexture->lowerRight_x, covers[i].cover->overlayTexture->lowerRight_y);
             else
-                rmDrawOverlayPixmap(&gameCover[i]->overlayTexture->source, renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol,
-                                    texture[i], gameCover[i]->overlayTexture->upperLeft_x, gameCover[i]->overlayTexture->upperLeft_y, gameCover[i]->overlayTexture->upperRight_x,
-                                    gameCover[i]->overlayTexture->upperRight_y, gameCover[i]->overlayTexture->lowerLeft_x, gameCover[i]->overlayTexture->lowerLeft_y,
-                                    gameCover[i]->overlayTexture->lowerRight_x, gameCover[i]->overlayTexture->lowerRight_y);
+                rmDrawOverlayPixmap(&covers[i].cover->overlayTexture->source, renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol,
+                                    covers[i].texture, covers[i].cover->overlayTexture->upperLeft_x, covers[i].cover->overlayTexture->upperLeft_y, covers[i].cover->overlayTexture->upperRight_x,
+                                    covers[i].cover->overlayTexture->upperRight_y, covers[i].cover->overlayTexture->lowerLeft_x, covers[i].cover->overlayTexture->lowerLeft_y,
+                                    covers[i].cover->overlayTexture->lowerRight_x, covers[i].cover->overlayTexture->lowerRight_y);
         } else {
             if (elem->reflection)
-                rmDrawPixmapWithReflection(texture[i], renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol);
+                rmDrawPixmapWithReflection(covers[i].texture, renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol);
             else
-                rmDrawPixmap(texture[i], renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol);
+                rmDrawPixmap(covers[i].texture, renderPosX, elem->posY, ALIGN_CENTER, coverWidth, coverHeight, SCALING_NONE, gDefaultCol);
         }
     }
 }
