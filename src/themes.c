@@ -1367,7 +1367,8 @@ static void thmSetColors(theme_t *theme)
 
     theme_element_t *elem = theme->mainElems.first;
     while (elem) {
-        elem->color = theme->textColor;
+        if (elem->color == 0)
+            elem->color = theme->textColor;
         elem = elem->next;
     }
 }
