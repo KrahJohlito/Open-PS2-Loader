@@ -539,6 +539,19 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
     int coreLoader = 0;
     configGetInt(configSet, CONFIG_ITEM_CORE_LOADER, &coreLoader);
 
+    const char *neutrinoPath = NULL;
+    if (coreLoader) {
+        neutrinoPath = sbFileExists(NEUTRINO_PATH) ? NEUTRINO_PATH : (sbFileExists(NEUTRINO_ALT_PATH) ? NEUTRINO_ALT_PATH : NULL);
+
+        if (game->format == GAME_FORMAT_USBLD || !strcasecmp(game->extension, ".zso")) {
+            guiWarning("Neutrino does not support this file format, launching with <OPL> core", 6);
+            coreLoader = 0;
+        } else if (neutrinoPath == NULL) {
+            guiWarning("Neutrino ELF not found, launching with <OPL> core", 6);
+            coreLoader = 0;
+        }
+    }
+
     if (gAutoLaunchBDMGame == NULL)
         deinit(NO_EXCEPTION, itemList->mode); // CAREFUL: deinit will call bdmCleanUp, so bdmGames/game will be freed
     else {
@@ -552,17 +565,6 @@ void bdmLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
     }
 
     LOG("bdm pre sysLaunchLoaderElf\n");
-
-    const char *neutrinoPath = sbFileExists(NEUTRINO_PATH) ? NEUTRINO_PATH : (sbFileExists(NEUTRINO_ALT_PATH) ? NEUTRINO_ALT_PATH : NULL);
-    if (coreLoader) {
-        if (game->format == GAME_FORMAT_USBLD || !strcasecmp(game->extension, ".zso")) {
-            guiWarning("Neutrino does not support this file format, launching with <OPL> core", 6);
-            coreLoader = 0;
-        } else if (neutrinoPath == NULL) {
-            guiWarning("Neutrino ELF not found, launching with <OPL> core", 6);
-            coreLoader = 0;
-        }
-    }
 
     if (coreLoader) {
         sysLaunchNeutrino(bdmCurrentDriver, partname, compatmask, EnablePS2Logo, neutrinoPath);

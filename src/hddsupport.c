@@ -591,6 +591,19 @@ void hddLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
         isZSO = 1;
     }
 
+    const char *neutrinoPath = NULL;
+    if (coreLoader) {
+        neutrinoPath = sbFileExists(NEUTRINO_PATH) ? NEUTRINO_PATH : (sbFileExists(NEUTRINO_ALT_PATH) ? NEUTRINO_ALT_PATH : NULL);
+
+        if (isZSO) {
+            guiWarning("Neutrino does not support this file format, launching with <OPL> core", 6);
+            coreLoader = 0;
+        } else if (neutrinoPath == NULL) {
+            guiWarning("Neutrino ELF not found, launching with <OPL> core", 6);
+            coreLoader = 0;
+        }
+    }
+
     if (gAutoLaunchGame == NULL)
         deinit(NO_EXCEPTION, HDD_MODE); // CAREFUL: deinit will call hddCleanUp, so hddGames/game will be freed
     else {
@@ -601,17 +614,6 @@ void hddLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
 
         fileXioUmount("pfs0:");
         fileXioDevctl("pfs:", PDIOC_CLOSEALL, NULL, 0, NULL, 0);
-    }
-
-    const char *neutrinoPath = sbFileExists(NEUTRINO_PATH) ? NEUTRINO_PATH : (sbFileExists(NEUTRINO_ALT_PATH) ? NEUTRINO_ALT_PATH : NULL);
-    if (coreLoader) {
-        if (isZSO) {
-            guiWarning("Neutrino does not support this file format, launching with <OPL> core", 6);
-            coreLoader = 0;
-        } else if (neutrinoPath == NULL) {
-            guiWarning("Neutrino ELF not found, launching with <OPL> core", 6);
-            coreLoader = 0;
-        }
     }
 
     if (coreLoader) {
