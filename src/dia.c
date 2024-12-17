@@ -88,7 +88,8 @@ int diaShowKeyb(char *text, int maxLen, int hide_text, const char *title)
         readPads();
 
         rmStartFrame();
-        guiDrawBGPlasma();
+        if (guiDrawBGSettings() == 0)
+            guiDrawBGPlasma();
         rmDrawRect(0, 0, screenWidth, screenHeight, gColDarker);
 
         // Title
@@ -282,7 +283,8 @@ static int diaShowColSel(unsigned char *r, unsigned char *g, unsigned char *b)
         readPads();
 
         rmStartFrame();
-        guiDrawBGPlasma();
+        if (guiDrawBGSettings() == 0)
+            guiDrawBGPlasma();
         rmDrawRect(0, 0, screenWidth, screenHeight, gColDarker);
 
         // "Color selection"
@@ -569,7 +571,8 @@ static int scrollOffset = 0;
 /// renders whole ui screen (for given dialog setup)
 void diaRenderUI(struct UIItem *ui, short inMenu, struct UIItem *cur, int haveFocus)
 {
-    guiDrawBGPlasma();
+    if (guiDrawBGSettings() == 0)
+        guiDrawBGPlasma();
 
     int x0 = 20;
     int y0 = 20;

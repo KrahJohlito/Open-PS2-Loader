@@ -1319,6 +1319,17 @@ void guiDrawBGPlasma()
     rmDrawPixmap(&gBackgroundTex, 0, 0, ALIGN_NONE, screenWidth, screenHeight, SCALING_NONE, gDefaultCol);
 }
 
+int guiDrawBGSettings(void)
+{
+    GSTEXTURE *bg = thmGetTexture(SETTINGS_BG);
+    if (bg) {
+        rmDrawPixmap(bg, 0, 0, ALIGN_NONE, screenWidth, screenHeight, SCALING_NONE, gDefaultCol);
+        return 1;
+    }
+
+    return 0;
+}
+
 int guiDrawIconAndText(int iconId, int textId, int font, int x, int y, u64 color)
 {
     GSTEXTURE *iconTex = thmGetTexture(iconId);

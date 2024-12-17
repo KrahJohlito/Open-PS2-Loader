@@ -46,7 +46,7 @@ extern void *L3_png;
 extern void *R1_png;
 extern void *R2_png;*/
 
-extern void *background_png;
+extern void *settings_bg_png;
 extern void *cover_png;
 extern void *disc_png;
 extern void *screen_png;
@@ -172,7 +172,7 @@ static texture_t internalDefault[TEXTURES_COUNT] = {
     {L3_ICON, "L3", &L3_png},
     {R1_ICON, "R1", &R1_png},
     {R2_ICON, "R2", &R2_png}, */
-    {MAIN_BG, "background", &background_png},
+    {SETTINGS_BG, "settings_bg", &settings_bg_png},
     {COVER_DEFAULT, "cover", &cover_png},
     {DISC_DEFAULT, "disc", &disc_png},
     {SCREEN_DEFAULT, "screen", &screen_png},

@@ -1591,6 +1591,14 @@ static void thmLoad(const char *themePath, int themeID)
         for (i = ELF_FORMAT; i <= VMODE_PAL; i++)
             thmLoadResource(&newT->textures[i], i, NULL, GS_PSM_CT32, 1);
 
+    if (themePath) {
+        if (configGetInt(themeConfig, "use_settings_bg", &intValue)) {
+            if (intValue)
+                thmLoadResource(&newT->textures[SETTINGS_BG], SETTINGS_BG, themePath, GS_PSM_CT32, 0);
+        }
+    } else
+        texLoadInternal(&newT->textures[SETTINGS_BG], SETTINGS_BG);
+
     gTheme = newT;
     thmFree(curT);
 }
