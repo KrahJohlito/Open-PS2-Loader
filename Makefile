@@ -598,7 +598,7 @@ modules/network/smbinit/smbinit.irx: modules/network/smbinit
 $(EE_ASM_DIR)smbinit.c: modules/network/smbinit/smbinit.irx | $(EE_ASM_DIR)
 	$(BIN2C) $< $@ $(*F)_irx
 
-$(EE_ASM_DIR)ps2atad.c: $(PS2SDK)/iop/irx/ps2atad.irx | $(EE_ASM_DIR)
+$(EE_ASM_DIR)ps2atad.c: $(PS2SDK)/iop/irx/ata_bd.irx | $(EE_ASM_DIR)
 	$(BIN2C) $< $@ $(*F)_irx
 
 $(EE_ASM_DIR)hdpro_atad.c: $(PS2SDK)/iop/irx/hdproatad.irx | $(EE_ASM_DIR)
