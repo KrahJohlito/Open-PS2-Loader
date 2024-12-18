@@ -48,14 +48,15 @@ Get Neutrino here: https://github.com/rickgaiser/neutrino/releases
 ### Additional Theme Options
 These are all optional and will use default values if omitted.
 
-| Key                         | Description                                                                                                        |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `wsX`                       | Sets theme element posX position in widescreen (avoids the need for seperate 4:3 and 16:9 theme cfgs)              |
-| `skip`                      | If enabled will skip rendering of StaticImage types if there is no currently selected item                         |
-| `reflection`                | If enabled will render a reflection of GameImage or Coverflow types (not recommended for faked perspective images) |
-| `plasma_blend_color`        | Optional secondary blend colour for plasma (now you can mix bg & blend colour, previously it only bg & black)      |
-| `Coverflow`                 | New type will render 3 covers at a time, works with overlays and reflection etc                                    |
-| `aligned=2`                 | New value for "aligned" to right justify                                                                           |
+| Key                         | Description                                                                                                          |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `wsX`                       | Sets theme element posX position in widescreen (avoids the need for seperate 4:3 and 16:9 theme cfgs)                |
+| `skip`                      | If enabled will skip rendering of StaticImage types if there is no currently selected item                           |
+| `reflection`                | If enabled will render a reflection of GameImage or Coverflow types (not recommended for faked perspective images)   |
+| `plasma_blend_color`        | Optional secondary blend colour for plasma (now you can mix bg & blend colour, previously it only bg & black)        |
+| `Coverflow`                 | New type will render 3 covers at a time, works with overlays and reflection etc                                      |
+| `aligned=2`                 | New value for "aligned" to right justify                                                                             |
+| `use_settings_bg=1`         | If enabled all menus will display `settings_bg.png` from your theme instead of traditional plasma for the background |
 
 <img src="previews/uOPL.png" height="300" />
 <img src="previews/uOPL-CF.png" height="300" />
