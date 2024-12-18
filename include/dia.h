@@ -15,6 +15,8 @@ typedef enum {
     UI_SPACER,
     // A string label
     UI_LABEL,
+    // Same as label but different colour to look more like a header
+    UI_HEADER,
     // Ok button
     UI_OK, // Just a shortcut for BUTTON with OK label and id 1!
     // Universal button (display's label, returns id on X)
