@@ -1686,8 +1686,8 @@ int guiMsgBox(const char *text, int addAccept, struct UIItem *ui)
 
         rmDrawRect(0, 0, screenWidth, screenHeight, gColDarker);
 
-        rmDrawLine(50, 75, screenWidth - 50, 75, gColWhite);
-        rmDrawLine(50, 410, screenWidth - 50, 410, gColWhite);
+        rmDrawLine(50, 75, screenWidth - 50, 75, gTheme->textColor);
+        rmDrawLine(50, 410, screenWidth - 50, 410, gTheme->textColor);
 
         fntRenderString(gTheme->fonts[0], screenWidth >> 1, gTheme->usedHeight >> 1, ALIGN_CENTER, 0, 0, text, gTheme->textColor);
         guiDrawIconAndText(gSelectButton == KEY_CIRCLE ? CROSS_ICON : CIRCLE_ICON, _STR_BACK, gTheme->fonts[0], 500, 417, gTheme->selTextColor);
@@ -1752,8 +1752,8 @@ void guiWarning(const char *text, int count)
 
     rmDrawRect(0, 0, screenWidth, screenHeight, gColDarker);
 
-    rmDrawLine(50, 75, screenWidth - 50, 75, gColWhite);
-    rmDrawLine(50, 410, screenWidth - 50, 410, gColWhite);
+    rmDrawLine(50, 75, screenWidth - 50, 75, gTheme->textColor);
+    rmDrawLine(50, 410, screenWidth - 50, 410, gTheme->textColor);
 
     fntRenderString(gTheme->fonts[0], screenWidth >> 1, gTheme->usedHeight >> 1, ALIGN_CENTER, screenWidth, screenHeight, text, gTheme->textColor);
 
@@ -1788,8 +1788,8 @@ int guiConfirmVideoMode(void)
 
         rmDrawRect(0, 0, screenWidth, screenHeight, gColDarker);
 
-        rmDrawLine(50, 75, screenWidth - 50, 75, gColWhite);
-        rmDrawLine(50, 410, screenWidth - 50, 410, gColWhite);
+        rmDrawLine(50, 75, screenWidth - 50, 75, gTheme->textColor);
+        rmDrawLine(50, 410, screenWidth - 50, 410, gTheme->textColor);
 
         fntRenderString(gTheme->fonts[0], screenWidth >> 1, gTheme->usedHeight >> 1, ALIGN_CENTER, 0, 0, _l(_STR_CFM_VMODE_CHG), gTheme->textColor);
         guiDrawIconAndText(gSelectButton == KEY_CIRCLE ? CROSS_ICON : CIRCLE_ICON, _STR_BACK, gTheme->fonts[0], 500, 417, gTheme->selTextColor);
@@ -1833,8 +1833,8 @@ int guiGameShowRemoveSettings(config_set_t *configSet, config_set_t *configGame)
 
         rmDrawRect(0, 0, screenWidth, screenHeight, gColDarker);
 
-        rmDrawLine(50, 75, screenWidth - 50, 75, gColWhite);
-        rmDrawLine(50, 410, screenWidth - 50, 410, gColWhite);
+        rmDrawLine(50, 75, screenWidth - 50, 75, gTheme->textColor);
+        rmDrawLine(50, 410, screenWidth - 50, 410, gTheme->textColor);
 
         fntRenderString(gTheme->fonts[0], screenWidth >> 1, gTheme->usedHeight >> 1, ALIGN_CENTER, 0, 0, _l(_STR_GAME_SETTINGS_PROMPT), gTheme->textColor);
 
@@ -1916,8 +1916,8 @@ void guiManageCheats(void)
         guiShow();
 
         rmDrawRect(0, 0, screenWidth, screenHeight, gColDarker);
-        rmDrawLine(50, 75, screenWidth - 50, 75, gColWhite);
-        rmDrawLine(50, 410, screenWidth - 50, 410, gColWhite);
+        rmDrawLine(50, 75, screenWidth - 50, 75, gTheme->textColor);
+        rmDrawLine(50, 410, screenWidth - 50, 410, gTheme->textColor);
 
         fntRenderString(gTheme->fonts[0], screenWidth >> 1, 60, ALIGN_CENTER, 0, 0, _l(_STR_CHEAT_SELECTION), gTheme->textColor);
 
