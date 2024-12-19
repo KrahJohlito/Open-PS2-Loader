@@ -1878,14 +1878,14 @@ static void setDefaults(void)
     gBDMDebug = 0;
     gPS2Logo = 0;
     gHDDGameListCache = 0;
-    gEnableWrite = 0;
+    gEnableWrite = 1;
     gRememberLastPlayed = 0;
     gAutoStartLastPlayed = 9;
     gSelectButton = KEY_CIRCLE; // Default to Japan.
     gBDMPrefix[0] = '\0';
     gETHPrefix[0] = '\0';
     gEnableNotifications = 0;
-    gEnableArt = 0;
+    gEnableArt = 1;
     gWideScreen = 0;
     gEnableSFX = 0;
     gEnableBootSND = 0;
