@@ -778,9 +778,10 @@ config_set_t *sbPopulateConfig(base_game_info_t *game, const char *prefix, const
     config_set_t *config = configAlloc(0, NULL, path);
     configRead(config); // Does not matter if the config file could be loaded or not.
 
+        char gamepath[256];
     // Get game size if not already set
     if (game->sizeMB == 0) {
-        char gamepath[256];
+
         if (game->format == GAME_FORMAT_OLD_ISO)
             snprintf(gamepath, sizeof(gamepath), "%s%s%s%s", prefix, sep, game->startup, game->extension);
         else
