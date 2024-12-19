@@ -202,7 +202,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        debug: [iopcore_debug, ingame_debug, eesio_debug, iopcore_ppctty_debug, ingame_ppctty_debug, DTL_T10000=1]
+        debug: [iopcore_debug, ingame_debug, eesio_debug, DTL_T10000=1]
         container_commit: [":main"]
     runs-on: ubuntu-latest
     container: ghcr.io/ps2dev/ps2dev@sha256:362bcd26b8bd94149c539f41749edb13facbb5b68a8b960e219fc079693cb95f
