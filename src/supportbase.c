@@ -792,6 +792,8 @@ config_set_t *sbPopulateConfig(base_game_info_t *game, const char *prefix, const
             game->sizeMB = 0;
     }
 
+    LOG("GAMEPATH=%s\n", gamepath);
+
     configSetStr(config, CONFIG_ITEM_NAME, game->name);
     configSetInt(config, CONFIG_ITEM_SIZE, game->sizeMB);
 
