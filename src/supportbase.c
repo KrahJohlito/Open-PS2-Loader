@@ -781,11 +781,10 @@ config_set_t *sbPopulateConfig(base_game_info_t *game, const char *prefix, const
         char gamepath[256];
     // Get game size if not already set
     if (game->sizeMB == 0) {
-
         if (game->format == GAME_FORMAT_OLD_ISO)
-            snprintf(gamepath, sizeof(gamepath), "%s%s%s%s", prefix, sep, game->startup, game->extension);
+            snprintf(gamepath, sizeof(gamepath), "%s%s%s/%s%s", prefix, sep, game->media == SCECdPS2CD ? "CD" : "DVD", game->startup, game->extension);
         else
-            snprintf(gamepath, sizeof(gamepath), "%s%s%s%s", prefix, sep, game->name, game->extension);
+            snprintf(gamepath, sizeof(gamepath), "%s%s%s/%s%s", prefix, sep, game->media == SCECdPS2CD ? "CD" : "DVD", game->name, game->extension);
 
         if (stat(gamepath, &st) == 0)
             game->sizeMB = st.st_size >> 20;
