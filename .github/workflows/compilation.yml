@@ -10,27 +10,42 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
+    container: ghcr.io/ps2dev/ps2dev@sha256:362bcd26b8bd94149c539f41749edb13facbb5b68a8b960e219fc079693cb95f
     steps:
-      - name: Checkout repository
+      - name: Install required dependencies
+        run: |
+          apk update
+          apk add --no-cache \
+            make \
+            git \
+            python3 \
+            gcc \
+            g++ \
+            libtool \
+            automake \
+            bison \
+            flex \
+            texinfo \
+            gawk \
+            wget \
+            curl \
+            zip
+
+      - name: Install pip for Python 3
+        run: |
+          python3 -m ensurepip --upgrade
+
+      - name: Install Python dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pyyaml
+
+      - name: git checkout
         uses: actions/checkout@v4
 
-      - name: Download ps2dev artifact
-        run: |
-          curl -L -o ps2dev-ubuntu-latest.tar.gz "https://github.com/KrahJohlito/ps2dev/releases/download/2023-test/ps2dev-ubuntu-22.04.tar.gz"
-          tar -xzf ps2dev-ubuntu-latest.tar.gz -C $GITHUB_WORKSPACE
-
-      - name: Set environment variables
-        run: |
-          echo "PS2DEV=${{ github.workspace }}/ps2dev" >> $GITHUB_ENV
-          echo "PS2SDK=${{ github.workspace }}/ps2dev/ps2sdk" >> $GITHUB_ENV
-          echo "GSKIT=${{ github.workspace }}/ps2dev/gsKit" >> $GITHUB_ENV
-          echo "PATH=${{ github.workspace }}/ps2dev/bin:${{ github.workspace }}/ps2dev/ee/bin:${{ github.workspace }}/ps2dev/iop/bin:${{ github.workspace }}/ps2dev/dvp/bin:${{ github.workspace }}/ps2dev/ps2sdk/bin:$PATH" >> $GITHUB_ENV
-          echo "PS2PACKERSTUBPATH=${{ github.workspace }}/ps2dev/share/ps2-packer/stub" >> $GITHUB_ENV
-
-        # why? idk ps2-packer is a pain in the balls
-      - name: Move lzma-packer.so to root directory
-        run: |
-          cp $GITHUB_WORKSPACE/ps2dev/share/ps2-packer/module/lzma-packer.so $GITHUB_WORKSPACE/lzma-packer.so
+      - run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --prune --unshallow
 
       - name: Compile -> make clean release
         run: make --trace clean release
@@ -63,22 +78,43 @@ jobs:
       matrix:
         extra: [EXTRA_FEATURES=0, EXTRA_FEATURES=1]
         pademu: [PADEMU=0, PADEMU=1]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    container: ghcr.io/ps2dev/ps2dev@sha256:362bcd26b8bd94149c539f41749edb13facbb5b68a8b960e219fc079693cb95f
     steps:
-      - name: Checkout repository
+      - name: Install required dependencies
+        run: |
+          apk update
+          apk add --no-cache \
+            make \
+            git \
+            python3 \
+            gcc \
+            g++ \
+            libtool \
+            automake \
+            bison \
+            flex \
+            texinfo \
+            gawk \
+            wget \
+            curl \
+            zip
+
+      - name: Install pip for Python 3
+        run: |
+          python3 -m ensurepip --upgrade
+
+      - name: Install Python dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pyyaml
+
+      - name: git checkout
         uses: actions/checkout@v4
 
-      - name: Download ps2dev artifact
-        run: |
-          curl -L -o ps2dev-ubuntu-latest.tar.gz "https://github.com/KrahJohlito/ps2dev/releases/download/2023-test/ps2dev-ubuntu-22.04.tar.gz"
-          tar -xzf ps2dev-ubuntu-latest.tar.gz -C $GITHUB_WORKSPACE
-
-      - name: Set environment variables
-        run: |
-          echo "PS2DEV=${{ github.workspace }}/ps2dev" >> $GITHUB_ENV
-          echo "PS2SDK=${{ github.workspace }}/ps2dev/ps2sdk" >> $GITHUB_ENV
-          echo "GSKIT=${{ github.workspace }}/ps2dev/gsKit" >> $GITHUB_ENV
-          echo "PATH=${{ github.workspace }}/ps2dev/bin:${{ github.workspace }}/ps2dev/ee/bin:${{ github.workspace }}/ps2dev/iop/bin:${{ github.workspace }}/ps2dev/dvp/bin:${{ github.workspace }}/ps2dev/ps2sdk/bin:$PATH" >> $GITHUB_ENV
+      - run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --prune --unshallow
 
       - name: Get version
         run: |
@@ -95,11 +131,11 @@ jobs:
       - name: Upload variants artifact ELF
         uses: actions/upload-artifact@v4
         with:
-          name: OPNPS2LD-VARIANTS-${{ matrix.pademu }}-${{ matrix.extra }}
+          name: OPNPS2LD-VARIANTS ${{ matrix.pademu }} ${{ matrix.extra }}
           path: OPNPS2LD*.ELF
 
   merge-variants:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs: build-variants
     steps:
       - name: Merge Artifacts
@@ -110,22 +146,43 @@ jobs:
           delete-merged: true
 
   build-lang:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    container: ghcr.io/ps2dev/ps2dev@sha256:362bcd26b8bd94149c539f41749edb13facbb5b68a8b960e219fc079693cb95f
     steps:
-      - name: Checkout repository
+      - name: Install required dependencies
+        run: |
+          apk update
+          apk add --no-cache \
+            make \
+            git \
+            python3 \
+            gcc \
+            g++ \
+            libtool \
+            automake \
+            bison \
+            flex \
+            texinfo \
+            gawk \
+            wget \
+            curl \
+            zip
+
+      - name: Install pip for Python 3
+        run: |
+          python3 -m ensurepip --upgrade
+
+      - name: Install Python dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pyyaml
+
+      - name: git checkout
         uses: actions/checkout@v4
 
-      - name: Download ps2dev artifact
-        run: |
-          curl -L -o ps2dev-ubuntu-latest.tar.gz "https://github.com/KrahJohlito/ps2dev/releases/download/2023-test/ps2dev-ubuntu-22.04.tar.gz"
-          tar -xzf ps2dev-ubuntu-latest.tar.gz -C $GITHUB_WORKSPACE
-
-      - name: Set environment variables
-        run: |
-          echo "PS2DEV=${{ github.workspace }}/ps2dev" >> $GITHUB_ENV
-          echo "PS2SDK=${{ github.workspace }}/ps2dev/ps2sdk" >> $GITHUB_ENV
-          echo "GSKIT=${{ github.workspace }}/ps2dev/gsKit" >> $GITHUB_ENV
-          echo "PATH=${{ github.workspace }}/ps2dev/bin:${{ github.workspace }}/ps2dev/ee/bin:${{ github.workspace }}/ps2dev/iop/bin:${{ github.workspace }}/ps2dev/dvp/bin:${{ github.workspace }}/ps2dev/ps2sdk/bin:$PATH" >> $GITHUB_ENV
+      - run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --prune --unshallow
 
       - name: Compile -> make download_lng languages
         run: make --trace download_lng languages
@@ -145,30 +202,45 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        debug: [iopcore_debug, ingame_debug, eesio_debug, DTL_T10000=1]
+        debug: [iopcore_debug, ingame_debug, eesio_debug, iopcore_ppctty_debug, ingame_ppctty_debug, DTL_T10000=1]
         container_commit: [":main"]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    container: ghcr.io/ps2dev/ps2dev@sha256:362bcd26b8bd94149c539f41749edb13facbb5b68a8b960e219fc079693cb95f
     steps:
-      - name: Checkout repository
+      - name: Install required dependencies
+        run: |
+          apk update
+          apk add --no-cache \
+            make \
+            git \
+            python3 \
+            gcc \
+            g++ \
+            libtool \
+            automake \
+            bison \
+            flex \
+            texinfo \
+            gawk \
+            wget \
+            curl \
+            zip
+
+      - name: Install pip for Python 3
+        run: |
+          python3 -m ensurepip --upgrade
+
+      - name: Install Python dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pyyaml
+
+      - name: git checkout
         uses: actions/checkout@v4
 
-      - name: Download ps2dev artifact
-        run: |
-          curl -L -o ps2dev-ubuntu-latest.tar.gz "https://github.com/KrahJohlito/ps2dev/releases/download/2023-test/ps2dev-ubuntu-22.04.tar.gz"
-          tar -xzf ps2dev-ubuntu-latest.tar.gz -C $GITHUB_WORKSPACE
-
-      - name: Set environment variables
-        run: |
-          echo "PS2DEV=${{ github.workspace }}/ps2dev" >> $GITHUB_ENV
-          echo "PS2SDK=${{ github.workspace }}/ps2dev/ps2sdk" >> $GITHUB_ENV
-          echo "GSKIT=${{ github.workspace }}/ps2dev/gsKit" >> $GITHUB_ENV
-          echo "PATH=${{ github.workspace }}/ps2dev/bin:${{ github.workspace }}/ps2dev/ee/bin:${{ github.workspace }}/ps2dev/iop/bin:${{ github.workspace }}/ps2dev/dvp/bin:${{ github.workspace }}/ps2dev/ps2sdk/bin:$PATH" >> $GITHUB_ENV
-          echo "PS2PACKERSTUBPATH=${{ github.workspace }}/ps2dev/share/ps2-packer/stub" >> $GITHUB_ENV
-
-        # why? idk ps2-packer is a pain in the balls
-      - name: Move lzma-packer.so to root directory
-        run: |
-          cp $GITHUB_WORKSPACE/ps2dev/share/ps2-packer/module/lzma-packer.so $GITHUB_WORKSPACE/lzma-packer.so
+      - run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --prune --unshallow
 
       - name: Get version
         run: |
@@ -189,7 +261,7 @@ jobs:
           path: opl-*.elf
 
   merge-debug:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs: build-debug
     steps:
       - name: Merge Artifacts
@@ -201,7 +273,7 @@ jobs:
 
   release:
     needs: [build, build-variants, build-lang]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/master'
     env:
       USERNAME: ${{ secrets.USERNAME }}
@@ -210,9 +282,7 @@ jobs:
       - name: git checkout
         uses: actions/checkout@v4
 
-      - run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git fetch --prune --unshallow
+      - run: git fetch --prune --unshallow
 
       - name: Get version
         run: |
@@ -241,13 +311,6 @@ jobs:
           prerelease: true
           automatic_release_tag: "latest"
           title: "${{ steps.version.outputs.version }}"
-          files: |
-            OPNPS2LD-${{ env.OPL_VERSION }}.7z
-            OPNPS2LD-VARIANTS-${{ env.OPL_VERSION }}.7z
-            OPNPS2LD-LANGS-${{ env.OPL_VERSION }}.7z
-            OPNPS2LD.7z
-            OPNPS2LD-VARIANTS.7z
-            OPNPS2LD-LANGS.7z
 
       - name: Create release
         if: startsWith(github.ref, 'refs/tags/v')
@@ -256,10 +319,3 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: "${{ contains(github.ref, '-rc') }}"
           title: "${{ env.OPL_VERSION }}"
-          files: |
-            OPNPS2LD-${{ env.OPL_VERSION }}.7z
-            OPNPS2LD-VARIANTS-${{ env.OPL_VERSION }}.7z
-            OPNPS2LD-LANGS-${{ env.OPL_VERSION }}.7z
-            OPNPS2LD.7z
-            OPNPS2LD-VARIANTS.7z
-            OPNPS2LD-LANGS.7z
