@@ -38,7 +38,7 @@ This is a forked repository you can find the official repository here:
 
 ### Neutrino Support
 Neutrino needs to be stored on either `mc0:NEUTRINO/neutrino.elf` or `mc1:NEUTRINO/neutrino.elf` with the usual setup of `config` and `modules` subfolders.<br>
-In game settings you will find an option `Core Loader` with the options of `<OPL>` or `Neutrino`<br><br>
+In game settings you will find an option `Loader Core` with the options of `<OPL>` or `Neutrino`<br><br>
 Supported devices: `USB` `MX4SIO` `HDD (ATA)` `iLink` `HDD (APA) - untested`<br><br>
 Neutrino does not support:<br>
 `ZSO Format` `USBExtreme Format` (Will result in `<OPL>` core being used instead even if `Neutrino` is selected)<br>

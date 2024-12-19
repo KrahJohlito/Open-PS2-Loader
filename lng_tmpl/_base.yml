@@ -703,7 +703,7 @@ gui_strings:
 - label: BDM_DEBUG
   string: BD Debug Log
 - label: CORE_LOADER
-  string: Core
+  string: Loader Core
 - label: MODE7
   string: Mode 7
 - label: HINT_MODE7
