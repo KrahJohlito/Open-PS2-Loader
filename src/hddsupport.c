@@ -617,6 +617,7 @@ void hddLaunchGame(item_list_t *itemList, int id, config_set_t *configSet)
     }
 
     if (coreLoader) {
+        LOG("partition_name=[%s] name=[%s] startup=[%s]\n", game->partition_name, game->name, game->startup);
         sysLaunchNeutrino("apa", game->partition_name, compatMode, EnablePS2Logo, neutrinoPath);
         return;
     }
