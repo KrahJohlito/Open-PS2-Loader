@@ -78,7 +78,7 @@ jobs:
       matrix:
         extra: [EXTRA_FEATURES=0, EXTRA_FEATURES=1]
         pademu: [PADEMU=0, PADEMU=1]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container: ghcr.io/ps2dev/ps2dev@sha256:362bcd26b8bd94149c539f41749edb13facbb5b68a8b960e219fc079693cb95f
     steps:
       - name: Install required dependencies
@@ -135,7 +135,7 @@ jobs:
           path: OPNPS2LD*.ELF
 
   merge-variants:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: build-variants
     steps:
       - name: Merge Artifacts
@@ -146,7 +146,7 @@ jobs:
           delete-merged: true
 
   build-lang:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container: ghcr.io/ps2dev/ps2dev@sha256:362bcd26b8bd94149c539f41749edb13facbb5b68a8b960e219fc079693cb95f
     steps:
       - name: Install required dependencies
@@ -204,7 +204,7 @@ jobs:
       matrix:
         debug: [iopcore_debug, ingame_debug, eesio_debug, DTL_T10000=1]
         container_commit: [":main"]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container: ghcr.io/ps2dev/ps2dev@sha256:362bcd26b8bd94149c539f41749edb13facbb5b68a8b960e219fc079693cb95f
     steps:
       - name: Install required dependencies
@@ -261,7 +261,7 @@ jobs:
           path: opl-*.elf
 
   merge-debug:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: build-debug
     steps:
       - name: Merge Artifacts
@@ -273,7 +273,7 @@ jobs:
 
   release:
     needs: [build, build-variants, build-lang]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/master'
     env:
       USERNAME: ${{ secrets.USERNAME }}
